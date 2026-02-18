@@ -2,8 +2,9 @@
 Generate the WAB Front-End UX/UI Specification PDF.
 Uses reportlab for PDF generation.
 """
-import subprocess, sys
+import subprocess, sys, os
 subprocess.check_call([sys.executable, "-m", "pip", "install", "reportlab", "-q"])
+os.makedirs("/vercel/share/v0-project/public", exist_ok=True)
 
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -75,7 +76,7 @@ styles.add(ParagraphStyle(
     spaceAfter=8, fontName="Helvetica-Bold",
 ))
 styles.add(ParagraphStyle(
-    "Bullet", parent=styles["Normal"],
+    "BulletItem", parent=styles["Normal"],
     fontSize=10, leading=15, textColor=HexColor("#2e2a22"),
     spaceAfter=4, leftIndent=18, bulletIndent=6, fontName="Helvetica",
 ))
@@ -85,7 +86,7 @@ styles.add(ParagraphStyle(
     spaceAfter=3, leftIndent=36, bulletIndent=24, fontName="Helvetica",
 ))
 styles.add(ParagraphStyle(
-    "Code", parent=styles["Normal"],
+    "CodeBlock", parent=styles["Normal"],
     fontSize=9, leading=13, textColor=HexColor("#2e2a22"),
     spaceAfter=6, leftIndent=12, fontName="Courier",
     backColor=HexColor("#f0ebe0"),
@@ -118,9 +119,9 @@ def h2(text): return Paragraph(text, styles["SectionH2"])
 def h3(text): return Paragraph(text, styles["SectionH3"])
 def body(text): return Paragraph(text, styles["Body"])
 def bold(text): return Paragraph(text, styles["BodyBold"])
-def bullet(text): return Paragraph(f"<bullet>&bull;</bullet> {text}", styles["Bullet"])
+def bullet(text): return Paragraph(f"<bullet>&bull;</bullet> {text}", styles["BulletItem"])
 def sub_bullet(text): return Paragraph(f"<bullet>-</bullet> {text}", styles["SubBullet"])
-def code(text): return Paragraph(text, styles["Code"])
+def code(text): return Paragraph(text, styles["CodeBlock"])
 def caption(text): return Paragraph(text, styles["Caption"])
 def note(text): return Paragraph(f"<i>Note: {text}</i>", styles["Note"])
 def spacer(h=8): return Spacer(1, h)
