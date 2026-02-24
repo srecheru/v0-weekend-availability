@@ -112,7 +112,7 @@ export default function CreateBoardPage() {
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground">
-                  Full calendar months from today. Cannot be changed later.
+                  Full calendar months from today.
                 </p>
               </div>
 
