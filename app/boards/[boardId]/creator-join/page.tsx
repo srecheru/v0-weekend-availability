@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
-import { usePrototype } from "@/lib/prototype-context";
+import { useParams } from "next/navigation";
 import { computeAggregation } from "@/lib/weekend-utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,15 +14,35 @@ import { ScenarioSwitcher } from "@/components/wab/scenario-switcher";
 import { ScreenNav } from "@/components/wab/screen-nav";
 import { BoardGate } from "@/components/wab/board-gate";
 import { CalendarPlus, KeyRound } from "lucide-react";
+import { useBoard } from "@/lib/wab-hooks";
 
 export default function CreatorJoinPage() {
-  const { board, participants, weekendFridays, currentParticipant } =
-    usePrototype();
+  const params = useParams<{ boardId: string }>();
+  const boardId = params.boardId;
+  const { board, participants, currentParticipant } = useBoard(boardId);
+
+  const weekendFridays = useMemo(() => {
+    if (!board) return [];
+    // Derive weekends on the client from the board's date range
+    // to keep the aggregation behavior consistent.
+    const { getWeekendsInRange, fridayToIso, computeDateRange } = require("@/lib/weekend-utils") as typeof import("@/lib/weekend-utils");
+    const range = computeDateRange(board.durationMonths);
+    const weekends = getWeekendsInRange(range.start, range.end);
+    return weekends.map(fridayToIso);
+  }, [board]);
 
   const { summary, hasAggregation, pendingCount } = useMemo(
-    () => computeAggregation(participants, weekendFridays),
+    () =>
+      computeAggregation(
+        participants ?? [],
+        weekendFridays,
+      ),
     [participants, weekendFridays]
   );
+
+  if (!board) {
+    return null;
+  }
 
   const boardBase = `/boards/${board.boardId}`;
 
@@ -30,9 +50,9 @@ export default function CreatorJoinPage() {
     <BoardGate>
     <main className="min-h-screen pb-20">
       <div className="mx-auto max-w-md px-4 py-6 flex flex-col gap-5">
-        <BoardHeader />
+        <BoardHeader board={board} />
 
-        <ShareLinkCard />
+        <ShareLinkCard boardId={board.boardId} joinToken={board.joinToken} />
 
         <Card>
           <CardHeader>
@@ -44,7 +64,10 @@ export default function CreatorJoinPage() {
               hasAggregation={hasAggregation}
               pendingCount={pendingCount}
             />
-            <ParticipantList />
+            <ParticipantList
+              participants={participants ?? []}
+              participantCap={board.participantCap}
+            />
           </CardContent>
         </Card>
 
@@ -70,7 +93,7 @@ export default function CreatorJoinPage() {
         </Button>
       </div>
 
-      <ScreenNav />
+      <ScreenNav boardId={board.boardId} viewRole="creator" />
       <ScenarioSwitcher />
     </main>
     </BoardGate>

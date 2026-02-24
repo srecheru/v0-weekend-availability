@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { usePrototype } from "@/lib/prototype-context";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CalendarPlus, UserPlus } from "lucide-react";
@@ -13,34 +12,6 @@ import { ScenarioSwitcher } from "@/components/wab/scenario-switcher";
  * Shows a friendly prompt to go create / join first.
  */
 export function BoardGate({ children }: { children: React.ReactNode }) {
-  const { boardCreated, participantJoined, viewRole, board } = usePrototype();
-
-  // Creator flow: must have created a board
-  if (viewRole === "creator" && !boardCreated) {
-    return (
-      <GateShell
-        icon={<CalendarPlus className="size-6 text-muted-foreground" />}
-        title="No board yet"
-        description="Create a group board first, then you can share it, add your availability, and see the group view."
-        actionLabel="Create a Group Board"
-        actionHref="/"
-      />
-    );
-  }
-
-  // Participant flow: must have joined (or reclaimed) the board
-  if (viewRole === "participant" && !participantJoined) {
-    return (
-      <GateShell
-        icon={<UserPlus className="size-6 text-muted-foreground" />}
-        title="Join the board first"
-        description="You need to join this board or reclaim your spot with a claim code before you can view availability."
-        actionLabel="Go to Join Page"
-        actionHref={`/boards/${board.boardId}/participant-join`}
-      />
-    );
-  }
-
   return <>{children}</>;
 }
 

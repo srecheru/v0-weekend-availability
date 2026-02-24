@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { usePrototype } from "@/lib/prototype-context";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -14,17 +13,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ScenarioSwitcher } from "@/components/wab/scenario-switcher";
-import { ScreenNav } from "@/components/wab/screen-nav";
 import { CalendarDays } from "lucide-react";
 
 export default function CreateBoardPage() {
   const router = useRouter();
-  const { board, updateBoardName, markBoardCreated } = usePrototype();
   const [boardName, setBoardName] = useState("");
   const [duration, setDuration] = useState<string>("3");
   const [participants, setParticipants] = useState<string>("");
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,10 +33,43 @@ export default function CreateBoardPage() {
       setError("Number of participants is required");
       return;
     }
+
     setError("");
-    updateBoardName(boardName.trim());
-    markBoardCreated();
-    router.push(`/boards/${board.boardId}/creator-join`);
+    setSubmitting(true);
+
+    void (async () => {
+      try {
+        const res = await fetch("/api/boards", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            boardName: boardName.trim(),
+            durationMonths: Number(duration),
+            participantCap: Number(participants),
+          }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          setError(data?.error ?? "Failed to create board");
+          setSubmitting(false);
+          return;
+        }
+
+        const boardId: string | undefined = data?.board?.boardId;
+        if (!boardId) {
+          setError("Failed to create board");
+          setSubmitting(false);
+          return;
+        }
+
+        router.push(`/boards/${boardId}/creator-join`);
+      } catch (err) {
+        console.error(err);
+        setError("Failed to create board");
+        setSubmitting(false);
+      }
+    })();
   };
 
   return (
@@ -117,7 +147,7 @@ export default function CreateBoardPage() {
                 </p>
               </div>
 
-              <Button type="submit" className="w-full" size="lg">
+              <Button type="submit" className="w-full" size="lg" disabled={submitting}>
                 Create Board
               </Button>
             </form>
@@ -125,8 +155,6 @@ export default function CreateBoardPage() {
         </Card>
       </div>
 
-      <ScreenNav />
-      <ScenarioSwitcher />
     </main>
   );
 }

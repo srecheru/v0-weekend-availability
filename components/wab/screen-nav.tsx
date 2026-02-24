@@ -2,17 +2,18 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { usePrototype } from "@/lib/prototype-context";
 import { cn } from "@/lib/utils";
 import { CalendarCheck, Users, Home, UserPlus, Share2 } from "lucide-react";
 
-export function ScreenNav() {
-  const { board, viewRole, hydrated } = usePrototype();
+export function ScreenNav({
+  boardId,
+  viewRole,
+}: {
+  boardId: string;
+  viewRole: "creator" | "participant";
+}) {
   const pathname = usePathname();
-  const boardBase = `/boards/${board.boardId}`;
-
-  // Don't render nav until client has restored the persisted viewRole
-  if (!hydrated) return null;
+  const boardBase = `/boards/${boardId}`;
 
   const creatorLinks = [
     {
@@ -91,8 +92,11 @@ export function ScreenNav() {
 
 // Tab nav for switching between My Availability and Group View within the board
 export function AvailabilityTabs({ activeTab }: { activeTab: "my" | "group" }) {
-  const { board } = usePrototype();
-  const boardBase = `/boards/${board.boardId}`;
+  // boardId will come from the current route
+  const pathname = usePathname();
+  const match = pathname.match(/\/boards\/([^/]+)/);
+  const boardId = match?.[1] ?? "";
+  const boardBase = boardId ? `/boards/${boardId}` : "";
 
   return (
     <div className="flex rounded-lg bg-muted p-1 gap-1">

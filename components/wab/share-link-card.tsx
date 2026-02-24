@@ -1,16 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { usePrototype } from "@/lib/prototype-context";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Check, Copy, Link } from "lucide-react";
 
-export function ShareLinkCard() {
-  const { board } = usePrototype();
+export function ShareLinkCard(props: { boardId: string; joinToken: string }) {
+  const { boardId, joinToken } = props;
   const [copied, setCopied] = useState(false);
 
-  const shareUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/boards/${board.boardId}/participant-join?joinToken=${board.joinToken}`;
+  const origin =
+    typeof window !== "undefined" ? window.location.origin : "";
+  const shareUrl = `${origin}/boards/${boardId}/participant-join?joinToken=${joinToken}`;
 
   const handleCopy = async () => {
     try {

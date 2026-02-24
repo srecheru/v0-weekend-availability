@@ -1,11 +1,9 @@
 "use client";
 
-import { usePrototype } from "@/lib/prototype-context";
+import type { Board } from "@/lib/weekend-utils";
 import { CalendarDays, Globe } from "lucide-react";
 
-export function BoardHeader() {
-  const { board } = usePrototype();
-
+export function BoardHeader({ board }: { board: Board }) {
   return (
     <header className="flex flex-col gap-1">
       <h1 className="text-2xl font-semibold text-balance text-foreground tracking-tight">

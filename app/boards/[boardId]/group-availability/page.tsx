@@ -1,8 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
-import { usePrototype } from "@/lib/prototype-context";
-import { computeAggregation } from "@/lib/weekend-utils";
+import { useParams, useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BoardHeader } from "@/components/wab/board-header";
 import { GroupCalendar } from "@/components/wab/weekend-calendar";
@@ -12,28 +10,44 @@ import { AvailabilityTabs } from "@/components/wab/screen-nav";
 import { ScenarioSwitcher } from "@/components/wab/scenario-switcher";
 import { BoardGate } from "@/components/wab/board-gate";
 import { ScreenNav } from "@/components/wab/screen-nav";
+import { useBoard, useAggregation } from "@/lib/wab-hooks";
 
 export default function GroupAvailabilityPage() {
-  const { board, participants, weekendFridays } = usePrototype();
+  const params = useParams<{ boardId: string }>();
+  const boardId = params.boardId;
+  const router = useRouter();
+  const { board, currentParticipant } = useBoard(boardId);
+  const { data } = useAggregation(boardId);
 
-  const { weekends, summary, hasAggregation, pendingCount } = useMemo(
-    () => computeAggregation(participants, weekendFridays),
-    [participants, weekendFridays]
-  );
+  if (!board) {
+    return null;
+  }
+
+  if (!currentParticipant || currentParticipant.state !== "ADDED_AVAILABILITY") {
+    router.replace(`/boards/${board.boardId}/my-availability`);
+    return null;
+  }
+
+  const weekends = data?.weekends ?? [];
+  const summary = data?.summary;
+  const hasAggregation = data?.hasAggregation ?? false;
+  const pendingCount = data?.pendingCount ?? 0;
 
   return (
     <BoardGate>
     <main className="min-h-screen pb-20">
       <div className="mx-auto max-w-md px-4 py-6 flex flex-col gap-5">
-        <BoardHeader />
+        <BoardHeader board={board} />
 
         <AvailabilityTabs activeTab="group" />
 
-        <TierSummaryBar
-          summary={summary}
-          hasAggregation={hasAggregation}
-          pendingCount={pendingCount}
-        />
+        {summary && (
+          <TierSummaryBar
+            summary={summary}
+            hasAggregation={hasAggregation}
+            pendingCount={pendingCount}
+          />
+        )}
 
         <Card>
           <CardHeader>
@@ -62,7 +76,7 @@ export default function GroupAvailabilityPage() {
         </div>
       </div>
 
-      <ScreenNav />
+      <ScreenNav boardId={board.boardId} viewRole="participant" />
       <ScenarioSwitcher />
     </main>
     </BoardGate>

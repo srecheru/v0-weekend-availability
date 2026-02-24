@@ -1,10 +1,15 @@
 "use client";
 
-import { usePrototype } from "@/lib/prototype-context";
+import type { Participant } from "@/lib/weekend-utils";
 import { Users } from "lucide-react";
 
-export function ParticipantList() {
-  const { participants, board } = usePrototype();
+export function ParticipantList({
+  participants,
+  participantCap,
+}: {
+  participants: Participant[];
+  participantCap: number;
+}) {
 
   if (participants.length === 0) {
     return (
@@ -24,7 +29,7 @@ export function ParticipantList() {
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center gap-2 text-sm font-medium text-foreground">
         <Users className="size-4" />
-        {participants.length} / {board.participantCap} Participants
+        {participants.length} / {participantCap} Participants
       </div>
       <p className="text-sm text-muted-foreground">{names.join(", ")}</p>
       {pendingCount > 0 && (

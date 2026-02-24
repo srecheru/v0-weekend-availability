@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
-import { usePrototype } from "@/lib/prototype-context";
+import { useRouter, useParams } from "next/navigation";
 import { computeAggregation } from "@/lib/weekend-utils";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -15,19 +14,29 @@ import { ClaimCodeInput } from "@/components/wab/claim-code-input";
 import { ScenarioSwitcher } from "@/components/wab/scenario-switcher";
 import { ScreenNav } from "@/components/wab/screen-nav";
 import { AlertCircle } from "lucide-react";
+import { useBoard } from "@/lib/wab-hooks";
 
 export default function ParticipantJoinPage() {
   const router = useRouter();
-  const { board, participants, weekendFridays, isBoardFull, addParticipant, markParticipantJoined } =
-    usePrototype();
+  const params = useParams<{ boardId: string }>();
+  const boardId = params.boardId;
+  const { board, participants } = useBoard(boardId);
+  const isBoardFull =
+    (participants?.length ?? 0) >= (board?.participantCap ?? 0);
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [reclaimError, setReclaimError] = useState("");
   const [showReclaim, setShowReclaim] = useState(false);
 
   const { summary, hasAggregation, pendingCount } = useMemo(
-    () => computeAggregation(participants, weekendFridays),
-    [participants, weekendFridays]
+    () =>
+      computeAggregation(
+        participants ?? [],
+        board
+          ? [] // aggregation endpoint will be used on group view; keep summary here minimal
+          : []
+      ),
+    [participants, board]
   );
 
   const handleJoin = (e: React.FormEvent) => {
@@ -37,32 +46,64 @@ export default function ParticipantJoinPage() {
       setError("Display name is required");
       return;
     }
-    if (participants.some((p) => p.displayName.toLowerCase() === trimmed.toLowerCase())) {
+    if (
+      participants?.some(
+        (p) => p.displayName.toLowerCase() === trimmed.toLowerCase()
+      )
+    ) {
       setError("That name is already taken. Use your claim code to reclaim.");
       return;
     }
     setError("");
-    addParticipant(trimmed);
-    markParticipantJoined();
-    router.push(`/boards/${board.boardId}/my-availability`);
+    void (async () => {
+      try {
+        const res = await fetch(`/api/boards/${boardId}/join`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ displayName: trimmed }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          setError(data?.error ?? "Failed to join board");
+          return;
+        }
+        router.push(`/boards/${boardId}/my-availability`);
+      } catch (err) {
+        console.error(err);
+        setError("Failed to join board");
+      }
+    })();
   };
 
   const handleReclaim = (code: string) => {
-    const found = participants.find(
-      (p) => p.claimCode.toLowerCase() === code.toLowerCase()
-    );
-    if (!found) {
-      setReclaimError("Invalid claim code. Please try again.");
-      return;
-    }
-    setReclaimError("");
-    markParticipantJoined();
-    if (found.state === "ADDED_AVAILABILITY") {
-      router.push(`/boards/${board.boardId}/group-availability`);
-    } else {
-      router.push(`/boards/${board.boardId}/my-availability`);
-    }
+    void (async () => {
+      try {
+        const res = await fetch(`/api/boards/${boardId}/reclaim`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ claimCode: code }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          setReclaimError(data?.error ?? "Invalid claim code. Please try again.");
+          return;
+        }
+        const participantState = data?.participant?.state;
+        if (participantState === "ADDED_AVAILABILITY") {
+          router.push(`/boards/${boardId}/group-availability`);
+        } else {
+          router.push(`/boards/${boardId}/my-availability`);
+        }
+      } catch (err) {
+        console.error(err);
+        setReclaimError("Invalid claim code. Please try again.");
+      }
+    })();
   };
+
+  if (!board) {
+    return null;
+  }
 
   const boardBase = `/boards/${board.boardId}`;
 
