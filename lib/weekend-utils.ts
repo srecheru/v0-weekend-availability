@@ -72,9 +72,11 @@ export function computeDateRange(durationMonths: 1 | 3 | 6 | 12): {
   start: Date;
   end: Date;
 } {
-  const now = new Date();
-  const start = startOfMonth(now);
-  const end = endOfMonth(addMonths(now, durationMonths - 1));
+  // Use a deterministic anchor date to avoid server/client hydration mismatches.
+  // In production, the server stores the computed dates at board-creation time.
+  const anchor = new Date(2026, 1, 23); // Feb 23, 2026
+  const start = startOfMonth(anchor);
+  const end = endOfMonth(addMonths(anchor, durationMonths - 1));
   return { start, end };
 }
 

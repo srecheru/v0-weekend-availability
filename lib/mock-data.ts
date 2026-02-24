@@ -6,14 +6,16 @@ import {
   fridayToIso,
 } from "./weekend-utils";
 
-// Generate a simple UUID-like string for mock purposes
-function mockUuid(): string {
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0;
-    const v = c === "x" ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
-}
+// ---------- Deterministic IDs (no Math.random to avoid hydration mismatches) ----------
+
+const STATIC_IDS = {
+  board: "b00d0001-aaaa-4000-8000-000000000001",
+  creator: "p00d0001-aaaa-4000-8000-000000000001",
+  participant2: "p00d0002-aaaa-4000-8000-000000000002",
+  participant3: "p00d0003-aaaa-4000-8000-000000000003",
+  participant4: "p00d0004-aaaa-4000-8000-000000000004",
+  participant5: "p00d0005-aaaa-4000-8000-000000000005",
+} as const;
 
 // Claim code word pool
 const CLAIM_WORDS = [
@@ -41,15 +43,15 @@ export interface Scenario {
 function createBoard(): Board {
   const { start, end } = computeDateRange(3);
   return {
-    boardId: mockUuid(),
+    boardId: STATIC_IDS.board,
     boardName: "Summer Hangouts",
-    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    timezone: "America/New_York",
     durationMonths: 3,
     dateRangeStart: start.toISOString().split("T")[0],
     dateRangeEnd: end.toISOString().split("T")[0],
     participantCap: 5,
     joinToken: "mock-join-token-abc123",
-    createdAt: new Date().toISOString(),
+    createdAt: "2026-02-23T12:00:00.000Z",
   };
 }
 
@@ -62,12 +64,11 @@ function getWeekendFridayStrings(board: Board): string[] {
 export function createEmptyScenario(): Scenario {
   const board = createBoard();
   const weekendFridays = getWeekendFridayStrings(board);
-  const creatorId = mockUuid();
 
   return {
     board,
     participants: [],
-    currentParticipantId: creatorId,
+    currentParticipantId: STATIC_IDS.creator,
     weekendFridays,
   };
 }
@@ -75,49 +76,48 @@ export function createEmptyScenario(): Scenario {
 export function createPartialScenario(): Scenario {
   const board = createBoard();
   const weekendFridays = getWeekendFridayStrings(board);
-  const creatorId = mockUuid();
 
   const participants: Participant[] = [
     {
-      participantId: creatorId,
+      participantId: STATIC_IDS.creator,
       boardId: board.boardId,
       displayName: "Alex (you)",
       claimCode: CLAIM_WORDS[0],
       state: "ADDED_AVAILABILITY",
-      busyWeekendFridays: weekendFridays.length >= 3
+      busyWeekendFridays: weekendFridays.length >= 5
         ? [weekendFridays[1], weekendFridays[4]]
         : [],
-      joinedAt: new Date().toISOString(),
-      lastUpdatedAt: new Date().toISOString(),
+      joinedAt: "2026-02-23T12:00:00.000Z",
+      lastUpdatedAt: "2026-02-23T14:00:00.000Z",
     },
     {
-      participantId: mockUuid(),
+      participantId: STATIC_IDS.participant2,
       boardId: board.boardId,
       displayName: "Jordan",
       claimCode: CLAIM_WORDS[1],
       state: "ADDED_AVAILABILITY",
-      busyWeekendFridays: weekendFridays.length >= 3
+      busyWeekendFridays: weekendFridays.length >= 4
         ? [weekendFridays[0], weekendFridays[1], weekendFridays[3]]
         : [],
-      joinedAt: new Date().toISOString(),
-      lastUpdatedAt: new Date().toISOString(),
+      joinedAt: "2026-02-23T13:00:00.000Z",
+      lastUpdatedAt: "2026-02-23T15:00:00.000Z",
     },
     {
-      participantId: mockUuid(),
+      participantId: STATIC_IDS.participant3,
       boardId: board.boardId,
       displayName: "Sam",
       claimCode: CLAIM_WORDS[2],
       state: "JOINED_NOT_INITIATED",
       busyWeekendFridays: [],
-      joinedAt: new Date().toISOString(),
-      lastUpdatedAt: new Date().toISOString(),
+      joinedAt: "2026-02-23T14:00:00.000Z",
+      lastUpdatedAt: "2026-02-23T14:00:00.000Z",
     },
   ];
 
   return {
     board,
     participants,
-    currentParticipantId: creatorId,
+    currentParticipantId: STATIC_IDS.creator,
     weekendFridays,
   };
 }
@@ -125,11 +125,10 @@ export function createPartialScenario(): Scenario {
 export function createFullScenario(): Scenario {
   const board = createBoard();
   const weekendFridays = getWeekendFridayStrings(board);
-  const creatorId = mockUuid();
 
   const participants: Participant[] = [
     {
-      participantId: creatorId,
+      participantId: STATIC_IDS.creator,
       boardId: board.boardId,
       displayName: "Alex (you)",
       claimCode: CLAIM_WORDS[0],
@@ -137,11 +136,11 @@ export function createFullScenario(): Scenario {
       busyWeekendFridays: weekendFridays.length >= 6
         ? [weekendFridays[1], weekendFridays[5]]
         : [],
-      joinedAt: new Date().toISOString(),
-      lastUpdatedAt: new Date().toISOString(),
+      joinedAt: "2026-02-23T12:00:00.000Z",
+      lastUpdatedAt: "2026-02-23T14:00:00.000Z",
     },
     {
-      participantId: mockUuid(),
+      participantId: STATIC_IDS.participant2,
       boardId: board.boardId,
       displayName: "Jordan",
       claimCode: CLAIM_WORDS[1],
@@ -149,11 +148,11 @@ export function createFullScenario(): Scenario {
       busyWeekendFridays: weekendFridays.length >= 6
         ? [weekendFridays[0], weekendFridays[1], weekendFridays[3]]
         : [],
-      joinedAt: new Date().toISOString(),
-      lastUpdatedAt: new Date().toISOString(),
+      joinedAt: "2026-02-23T13:00:00.000Z",
+      lastUpdatedAt: "2026-02-23T15:00:00.000Z",
     },
     {
-      participantId: mockUuid(),
+      participantId: STATIC_IDS.participant3,
       boardId: board.boardId,
       displayName: "Sam",
       claimCode: CLAIM_WORDS[2],
@@ -161,11 +160,11 @@ export function createFullScenario(): Scenario {
       busyWeekendFridays: weekendFridays.length >= 6
         ? [weekendFridays[1], weekendFridays[2], weekendFridays[5]]
         : [],
-      joinedAt: new Date().toISOString(),
-      lastUpdatedAt: new Date().toISOString(),
+      joinedAt: "2026-02-23T14:00:00.000Z",
+      lastUpdatedAt: "2026-02-23T16:00:00.000Z",
     },
     {
-      participantId: mockUuid(),
+      participantId: STATIC_IDS.participant4,
       boardId: board.boardId,
       displayName: "Taylor",
       claimCode: CLAIM_WORDS[3],
@@ -173,11 +172,11 @@ export function createFullScenario(): Scenario {
       busyWeekendFridays: weekendFridays.length >= 6
         ? [weekendFridays[5]]
         : [],
-      joinedAt: new Date().toISOString(),
-      lastUpdatedAt: new Date().toISOString(),
+      joinedAt: "2026-02-23T15:00:00.000Z",
+      lastUpdatedAt: "2026-02-23T17:00:00.000Z",
     },
     {
-      participantId: mockUuid(),
+      participantId: STATIC_IDS.participant5,
       boardId: board.boardId,
       displayName: "Casey",
       claimCode: CLAIM_WORDS[4],
@@ -185,15 +184,15 @@ export function createFullScenario(): Scenario {
       busyWeekendFridays: weekendFridays.length >= 6
         ? [weekendFridays[1], weekendFridays[3], weekendFridays[5]]
         : [],
-      joinedAt: new Date().toISOString(),
-      lastUpdatedAt: new Date().toISOString(),
+      joinedAt: "2026-02-23T16:00:00.000Z",
+      lastUpdatedAt: "2026-02-23T18:00:00.000Z",
     },
   ];
 
   return {
     board,
     participants,
-    currentParticipantId: creatorId,
+    currentParticipantId: STATIC_IDS.creator,
     weekendFridays,
   };
 }
