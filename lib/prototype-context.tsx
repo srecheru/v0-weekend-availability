@@ -11,6 +11,7 @@ import {
 } from "./mock-data";
 
 export type ScenarioName = "empty" | "partial" | "full" | "board-full";
+export type ViewRole = "creator" | "participant";
 
 interface PrototypeContextType {
   board: Board;
@@ -18,7 +19,9 @@ interface PrototypeContextType {
   currentParticipantId: string;
   weekendFridays: string[];
   scenarioName: ScenarioName;
+  viewRole: ViewRole;
   setScenario: (name: ScenarioName) => void;
+  setViewRole: (role: ViewRole) => void;
   toggleBusyWeekend: (fridayIso: string) => void;
   addParticipant: (name: string) => void;
   updateBoardName: (name: string) => void;
@@ -49,6 +52,7 @@ export function PrototypeProvider({ children }: { children: React.ReactNode }) {
   const [scenario, setScenario] = useState<Scenario>(() =>
     getScenarioByName("partial")
   );
+  const [viewRole, setViewRole] = useState<ViewRole>("creator");
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
 
   const switchScenario = useCallback((name: ScenarioName) => {
@@ -159,7 +163,9 @@ export function PrototypeProvider({ children }: { children: React.ReactNode }) {
       currentParticipantId: scenario.currentParticipantId,
       weekendFridays: scenario.weekendFridays,
       scenarioName,
+      viewRole,
       setScenario: switchScenario,
+      setViewRole,
       toggleBusyWeekend,
       addParticipant,
       updateBoardName,
@@ -170,7 +176,9 @@ export function PrototypeProvider({ children }: { children: React.ReactNode }) {
     [
       scenario,
       scenarioName,
+      viewRole,
       switchScenario,
+      setViewRole,
       toggleBusyWeekend,
       addParticipant,
       updateBoardName,

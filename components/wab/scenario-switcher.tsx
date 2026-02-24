@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { usePrototype, type ScenarioName } from "@/lib/prototype-context";
+import { usePrototype, type ScenarioName, type ViewRole } from "@/lib/prototype-context";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Settings2, X } from "lucide-react";
@@ -30,16 +30,16 @@ const SCENARIOS: { name: ScenarioName; label: string; desc: string }[] = [
 ];
 
 export function ScenarioSwitcher() {
-  const { scenarioName, setScenario } = usePrototype();
+  const { scenarioName, setScenario, viewRole, setViewRole } = usePrototype();
   const [open, setOpen] = useState(false);
 
   return (
     <div className="fixed bottom-4 right-4 z-50">
       {open && (
-        <div className="mb-2 bg-card border rounded-xl shadow-lg p-3 w-64">
-          <div className="flex items-center justify-between mb-2">
+        <div className="mb-2 bg-card border rounded-xl shadow-lg p-3 w-72">
+          <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Prototype Scenario
+              Prototype Controls
             </span>
             <Button
               variant="ghost"
@@ -48,6 +48,34 @@ export function ScenarioSwitcher() {
             >
               <X className="size-3.5" />
             </Button>
+          </div>
+          <div className="mb-3">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Viewing as
+            </span>
+            <div className="flex rounded-lg bg-muted p-0.5 gap-0.5 mt-1">
+              {(["creator", "participant"] as ViewRole[]).map((role) => (
+                <button
+                  key={role}
+                  type="button"
+                  onClick={() => setViewRole(role)}
+                  className={cn(
+                    "flex-1 text-center text-xs font-medium py-1.5 rounded-md transition-colors capitalize",
+                    viewRole === role
+                      ? "bg-card text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  {role}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="mb-1">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Scenario
+            </span>
           </div>
           <div className="flex flex-col gap-1">
             {SCENARIOS.map((s) => (

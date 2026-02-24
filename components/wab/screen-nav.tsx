@@ -7,11 +7,11 @@ import { cn } from "@/lib/utils";
 import { CalendarCheck, Users, Home, UserPlus, Share2 } from "lucide-react";
 
 export function ScreenNav() {
-  const { board } = usePrototype();
+  const { board, viewRole } = usePrototype();
   const pathname = usePathname();
   const boardBase = `/boards/${board.boardId}`;
 
-  const links = [
+  const creatorLinks = [
     {
       href: "/",
       label: "Create",
@@ -19,9 +19,22 @@ export function ScreenNav() {
     },
     {
       href: `${boardBase}/creator-join`,
-      label: "Creator",
+      label: "Share",
       icon: Share2,
     },
+    {
+      href: `${boardBase}/my-availability`,
+      label: "My Avail.",
+      icon: CalendarCheck,
+    },
+    {
+      href: `${boardBase}/group-availability`,
+      label: "Group",
+      icon: Users,
+    },
+  ];
+
+  const participantLinks = [
     {
       href: `${boardBase}/participant-join`,
       label: "Join",
@@ -39,8 +52,13 @@ export function ScreenNav() {
     },
   ];
 
+  const links = viewRole === "creator" ? creatorLinks : participantLinks;
+
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-card border-t" aria-label="Screen navigation">
+    <nav
+      className="fixed bottom-0 left-0 right-0 z-40 bg-card border-t"
+      aria-label="Screen navigation"
+    >
       <div className="mx-auto max-w-lg flex items-center justify-around py-1.5 px-2">
         {links.map((link) => {
           const isActive = pathname === link.href;
@@ -50,7 +68,7 @@ export function ScreenNav() {
               key={link.href}
               href={link.href}
               className={cn(
-                "flex flex-col items-center gap-0.5 px-2 py-1 rounded-md transition-colors text-center min-w-0",
+                "flex flex-col items-center gap-0.5 px-3 py-1 rounded-md transition-colors text-center min-w-0",
                 isActive
                   ? "text-foreground"
                   : "text-muted-foreground hover:text-foreground"
