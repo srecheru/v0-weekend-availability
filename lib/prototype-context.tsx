@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useCallback, useMemo } from "react";
+import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from "react";
 import type { Board, Participant } from "./weekend-utils";
 import {
   createPartialScenario,
@@ -30,6 +30,7 @@ interface PrototypeContextType {
   isBoardFull: boolean;
   currentParticipant: Participant | undefined;
   saveStatus: "idle" | "saving" | "saved";
+  hydrated: boolean;
 }
 
 const PrototypeContext = createContext<PrototypeContextType | null>(null);
@@ -49,20 +50,57 @@ function getScenarioByName(name: ScenarioName): Scenario {
   }
 }
 
+// Helpers to persist prototype controls across page navigations (prototype-only).
+function readSession<T>(key: string, fallback: T): T {
+  if (typeof window === "undefined") return fallback;
+  try {
+    const v = sessionStorage.getItem(key);
+    return v ? (JSON.parse(v) as T) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+function writeSession(key: string, value: unknown) {
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.setItem(key, JSON.stringify(value));
+  } catch { /* noop */ }
+}
+
 export function PrototypeProvider({ children }: { children: React.ReactNode }) {
+  // Hydrate with deterministic defaults, then sync from sessionStorage in an effect
   const [scenarioName, setScenarioName] = useState<ScenarioName>("partial");
   const [scenario, setScenario] = useState<Scenario>(() =>
     getScenarioByName("partial")
   );
-  const [viewRole, setViewRole] = useState<ViewRole>("creator");
-  const [boardCreated, setBoardCreated] = useState(true); // true for non-empty default scenario
+  const [viewRole, setViewRoleState] = useState<ViewRole>("creator");
+  const [boardCreated, setBoardCreated] = useState(true);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
+  const [hydrated, setHydrated] = useState(false);
+
+  // On mount, restore persisted prototype controls
+  useEffect(() => {
+    const savedRole = readSession<ViewRole>("wab-view-role", "creator");
+    const savedScenario = readSession<ScenarioName>("wab-scenario", "partial");
+    setViewRoleState(savedRole);
+    setScenarioName(savedScenario);
+    setScenario(getScenarioByName(savedScenario));
+    setBoardCreated(savedScenario !== "empty");
+    setHydrated(true);
+  }, []);
+
+  // Wrap setViewRole to also persist
+  const setViewRole = useCallback((role: ViewRole) => {
+    setViewRoleState(role);
+    writeSession("wab-view-role", role);
+  }, []);
 
   const switchScenario = useCallback((name: ScenarioName) => {
     setScenarioName(name);
     setScenario(getScenarioByName(name));
     setBoardCreated(name !== "empty");
     setSaveStatus("idle");
+    writeSession("wab-scenario", name);
   }, []);
 
   const markBoardCreated = useCallback(() => {
@@ -182,6 +220,7 @@ export function PrototypeProvider({ children }: { children: React.ReactNode }) {
       isBoardFull,
       currentParticipant,
       saveStatus,
+      hydrated,
     }),
     [
       scenario,
@@ -197,6 +236,7 @@ export function PrototypeProvider({ children }: { children: React.ReactNode }) {
       isBoardFull,
       currentParticipant,
       saveStatus,
+      hydrated,
     ]
   );
 

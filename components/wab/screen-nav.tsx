@@ -7,9 +7,12 @@ import { cn } from "@/lib/utils";
 import { CalendarCheck, Users, Home, UserPlus, Share2 } from "lucide-react";
 
 export function ScreenNav() {
-  const { board, viewRole } = usePrototype();
+  const { board, viewRole, hydrated } = usePrototype();
   const pathname = usePathname();
   const boardBase = `/boards/${board.boardId}`;
+
+  // Don't render nav until client has restored the persisted viewRole
+  if (!hydrated) return null;
 
   const creatorLinks = [
     {
