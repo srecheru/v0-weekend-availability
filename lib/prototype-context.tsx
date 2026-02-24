@@ -84,7 +84,7 @@ export function PrototypeProvider({ children }: { children: React.ReactNode }) {
                   ...p,
                   busyWeekendFridays: newBusy,
                   state: newState,
-                  lastUpdatedAt: new Date().toISOString(),
+                  lastUpdatedAt: "2026-02-23T20:00:00.000Z",
                 }
               : p
           ),
@@ -105,12 +105,9 @@ export function PrototypeProvider({ children }: { children: React.ReactNode }) {
     (name: string) => {
       setScenario((prev) => {
         if (prev.participants.length >= prev.board.participantCap) return prev;
-        const newId =
-          "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
-            const r = (Math.random() * 16) | 0;
-            const v = c === "x" ? r : (r & 0x3) | 0x8;
-            return v.toString(16);
-          });
+        // Deterministic ID based on participant count to avoid hydration mismatches
+        const idx = prev.participants.length + 1;
+        const newId = `p00d00${String(idx).padStart(2, "0")}-bbbb-4000-8000-00000000000${idx}`;
         const claimWords = [
           "river", "cloud", "eagle", "flame", "coral",
           "bridge", "moss", "ridge", "pearl", "leaf",
@@ -127,8 +124,8 @@ export function PrototypeProvider({ children }: { children: React.ReactNode }) {
               claimCode: claimWords[prev.participants.length % claimWords.length],
               state: "JOINED_NOT_INITIATED" as const,
               busyWeekendFridays: [],
-              joinedAt: new Date().toISOString(),
-              lastUpdatedAt: new Date().toISOString(),
+              joinedAt: "2026-02-23T18:00:00.000Z",
+              lastUpdatedAt: "2026-02-23T18:00:00.000Z",
             },
           ],
         };

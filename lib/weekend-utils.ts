@@ -1,7 +1,4 @@
 import {
-  addMonths,
-  startOfMonth,
-  endOfMonth,
   eachWeekOfInterval,
   isFriday,
   addDays,
@@ -72,12 +69,19 @@ export function computeDateRange(durationMonths: 1 | 3 | 6 | 12): {
   start: Date;
   end: Date;
 } {
-  // Use a deterministic anchor date to avoid server/client hydration mismatches.
+  // Use fully hardcoded ISO strings to avoid ALL timezone / hydration issues.
   // In production, the server stores the computed dates at board-creation time.
-  const anchor = new Date(2026, 1, 23); // Feb 23, 2026
-  const start = startOfMonth(anchor);
-  const end = endOfMonth(addMonths(anchor, durationMonths - 1));
-  return { start, end };
+  const rangeMap: Record<number, { start: string; end: string }> = {
+    1: { start: "2026-02-01", end: "2026-02-28" },
+    3: { start: "2026-02-01", end: "2026-04-30" },
+    6: { start: "2026-02-01", end: "2026-07-31" },
+    12: { start: "2026-02-01", end: "2027-01-31" },
+  };
+  const r = rangeMap[durationMonths] ?? rangeMap[3];
+  return {
+    start: parseISO(r.start),
+    end: parseISO(r.end),
+  };
 }
 
 export function getWeekendsInRange(start: Date, end: Date): Date[] {
