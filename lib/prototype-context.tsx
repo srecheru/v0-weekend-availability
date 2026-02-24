@@ -21,6 +21,7 @@ interface PrototypeContextType {
   setScenario: (name: ScenarioName) => void;
   toggleBusyWeekend: (fridayIso: string) => void;
   addParticipant: (name: string) => void;
+  updateBoardName: (name: string) => void;
   isBoardFull: boolean;
   currentParticipant: Participant | undefined;
   saveStatus: "idle" | "saving" | "saved";
@@ -134,6 +135,13 @@ export function PrototypeProvider({ children }: { children: React.ReactNode }) {
     []
   );
 
+  const updateBoardName = useCallback((name: string) => {
+    setScenario((prev) => ({
+      ...prev,
+      board: { ...prev.board, boardName: name },
+    }));
+  }, []);
+
   const isBoardFull = scenario.participants.length >= scenario.board.participantCap;
 
   const currentParticipant = useMemo(
@@ -154,6 +162,7 @@ export function PrototypeProvider({ children }: { children: React.ReactNode }) {
       setScenario: switchScenario,
       toggleBusyWeekend,
       addParticipant,
+      updateBoardName,
       isBoardFull,
       currentParticipant,
       saveStatus,
@@ -164,6 +173,7 @@ export function PrototypeProvider({ children }: { children: React.ReactNode }) {
       switchScenario,
       toggleBusyWeekend,
       addParticipant,
+      updateBoardName,
       isBoardFull,
       currentParticipant,
       saveStatus,

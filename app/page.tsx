@@ -20,7 +20,7 @@ import { CalendarDays } from "lucide-react";
 
 export default function CreateBoardPage() {
   const router = useRouter();
-  const { board } = usePrototype();
+  const { board, updateBoardName } = usePrototype();
   const [boardName, setBoardName] = useState("");
   const [duration, setDuration] = useState<string>("3");
   const [participants, setParticipants] = useState<string>("");
