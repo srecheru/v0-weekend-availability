@@ -10,6 +10,7 @@ import { TierSummaryBar } from "@/components/wab/tier-summary-bar";
 import { WeekendListGroup } from "@/components/wab/weekend-list-group";
 import { AvailabilityTabs } from "@/components/wab/screen-nav";
 import { ScenarioSwitcher } from "@/components/wab/scenario-switcher";
+import { BoardGate } from "@/components/wab/board-gate";
 import { ScreenNav } from "@/components/wab/screen-nav";
 
 export default function GroupAvailabilityPage() {
@@ -21,6 +22,7 @@ export default function GroupAvailabilityPage() {
   );
 
   return (
+    <BoardGate>
     <main className="min-h-screen pb-20">
       <div className="mx-auto max-w-md px-4 py-6 flex flex-col gap-5">
         <BoardHeader />
@@ -63,5 +65,6 @@ export default function GroupAvailabilityPage() {
       <ScreenNav />
       <ScenarioSwitcher />
     </main>
+    </BoardGate>
   );
 }

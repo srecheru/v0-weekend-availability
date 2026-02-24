@@ -12,6 +12,7 @@ import { TierSummaryBar } from "@/components/wab/tier-summary-bar";
 import { ParticipantList } from "@/components/wab/participant-list";
 import { ScenarioSwitcher } from "@/components/wab/scenario-switcher";
 import { ScreenNav } from "@/components/wab/screen-nav";
+import { BoardGate } from "@/components/wab/board-gate";
 import { CalendarPlus, KeyRound } from "lucide-react";
 
 export default function CreatorJoinPage() {
@@ -26,6 +27,7 @@ export default function CreatorJoinPage() {
   const boardBase = `/boards/${board.boardId}`;
 
   return (
+    <BoardGate>
     <main className="min-h-screen pb-20">
       <div className="mx-auto max-w-md px-4 py-6 flex flex-col gap-5">
         <BoardHeader />
@@ -71,5 +73,6 @@ export default function CreatorJoinPage() {
       <ScreenNav />
       <ScenarioSwitcher />
     </main>
+    </BoardGate>
   );
 }

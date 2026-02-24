@@ -25,6 +25,8 @@ interface PrototypeContextType {
   toggleBusyWeekend: (fridayIso: string) => void;
   addParticipant: (name: string) => void;
   updateBoardName: (name: string) => void;
+  boardCreated: boolean;
+  markBoardCreated: () => void;
   isBoardFull: boolean;
   currentParticipant: Participant | undefined;
   saveStatus: "idle" | "saving" | "saved";
@@ -53,12 +55,18 @@ export function PrototypeProvider({ children }: { children: React.ReactNode }) {
     getScenarioByName("partial")
   );
   const [viewRole, setViewRole] = useState<ViewRole>("creator");
+  const [boardCreated, setBoardCreated] = useState(true); // true for non-empty default scenario
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
 
   const switchScenario = useCallback((name: ScenarioName) => {
     setScenarioName(name);
     setScenario(getScenarioByName(name));
+    setBoardCreated(name !== "empty");
     setSaveStatus("idle");
+  }, []);
+
+  const markBoardCreated = useCallback(() => {
+    setBoardCreated(true);
   }, []);
 
   const toggleBusyWeekend = useCallback(
@@ -169,6 +177,8 @@ export function PrototypeProvider({ children }: { children: React.ReactNode }) {
       toggleBusyWeekend,
       addParticipant,
       updateBoardName,
+      boardCreated,
+      markBoardCreated,
       isBoardFull,
       currentParticipant,
       saveStatus,
@@ -182,6 +192,8 @@ export function PrototypeProvider({ children }: { children: React.ReactNode }) {
       toggleBusyWeekend,
       addParticipant,
       updateBoardName,
+      boardCreated,
+      markBoardCreated,
       isBoardFull,
       currentParticipant,
       saveStatus,

@@ -20,7 +20,7 @@ import { CalendarDays } from "lucide-react";
 
 export default function CreateBoardPage() {
   const router = useRouter();
-  const { board, updateBoardName } = usePrototype();
+  const { board, updateBoardName, markBoardCreated } = usePrototype();
   const [boardName, setBoardName] = useState("");
   const [duration, setDuration] = useState<string>("3");
   const [participants, setParticipants] = useState<string>("");
@@ -37,7 +37,8 @@ export default function CreateBoardPage() {
       return;
     }
     setError("");
-    // In the prototype, navigate to the existing mock board's creator-join page
+    updateBoardName(boardName.trim());
+    markBoardCreated();
     router.push(`/boards/${board.boardId}/creator-join`);
   };
 
