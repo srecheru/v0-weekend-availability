@@ -23,12 +23,17 @@ export default function CreateBoardPage() {
   const { board } = usePrototype();
   const [boardName, setBoardName] = useState("");
   const [duration, setDuration] = useState<string>("3");
+  const [participants, setParticipants] = useState<string>("");
   const [error, setError] = useState("");
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
     if (!boardName.trim()) {
       setError("Board name is required");
+      return;
+    }
+    if (!participants) {
+      setError("Number of participants is required");
       return;
     }
     setError("");
@@ -72,6 +77,25 @@ export default function CreateBoardPage() {
                 {error && (
                   <p className="text-xs text-destructive">{error}</p>
                 )}
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="participants">Participants</Label>
+                <Select value={participants} onValueChange={setParticipants}>
+                  <SelectTrigger id="participants" className="w-full">
+                    <SelectValue placeholder="Select number" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">1</SelectItem>
+                    <SelectItem value="2">2</SelectItem>
+                    <SelectItem value="3">3</SelectItem>
+                    <SelectItem value="4">4</SelectItem>
+                    <SelectItem value="5">5</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  How many people will be coordinating (1-5).
+                </p>
               </div>
 
               <div className="flex flex-col gap-2">
