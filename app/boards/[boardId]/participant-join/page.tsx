@@ -23,6 +23,7 @@ export default function ParticipantJoinPage() {
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [reclaimError, setReclaimError] = useState("");
+  const [showReclaim, setShowReclaim] = useState(false);
 
   const { summary, hasAggregation, pendingCount } = useMemo(
     () => computeAggregation(participants, weekendFridays),
@@ -113,6 +114,28 @@ export default function ParticipantJoinPage() {
                   Join Board
                 </Button>
               </form>
+
+              <div className="mt-4 border-t pt-4 flex flex-col gap-3">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-muted-foreground w-full"
+                  onClick={() => setShowReclaim((prev) => !prev)}
+                >
+                  Previously Joined?
+                </Button>
+                {showReclaim && (
+                  <div className="flex flex-col gap-2">
+                    <p className="text-xs text-muted-foreground">
+                      Enter the claim code you were given when you first joined.
+                    </p>
+                    <ClaimCodeInput onReclaim={handleReclaim} />
+                    {reclaimError && (
+                      <p className="text-xs text-destructive">{reclaimError}</p>
+                    )}
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
         )}
