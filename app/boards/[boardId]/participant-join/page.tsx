@@ -69,6 +69,20 @@ export default function ParticipantJoinPage() {
       <div className="mx-auto max-w-md px-4 py-6 flex flex-col gap-5">
         <BoardHeader />
 
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Board Overview</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-4">
+            <TierSummaryBar
+              summary={summary}
+              hasAggregation={hasAggregation}
+              pendingCount={pendingCount}
+            />
+            <ParticipantList />
+          </CardContent>
+        </Card>
+
         {isBoardFull ? (
           <Card>
             <CardHeader>
@@ -139,20 +153,6 @@ export default function ParticipantJoinPage() {
             </CardContent>
           </Card>
         )}
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Board Overview</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-4">
-            <TierSummaryBar
-              summary={summary}
-              hasAggregation={hasAggregation}
-              pendingCount={pendingCount}
-            />
-            <ParticipantList />
-          </CardContent>
-        </Card>
       </div>
 
       <ScreenNav />
