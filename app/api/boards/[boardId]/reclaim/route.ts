@@ -4,7 +4,7 @@ import type { Participant } from "@/lib/weekend-utils";
 import { getParticipantCookieName, PARTICIPANT_COOKIE_OPTIONS } from "@/lib/session";
 
 interface RouteContext {
-  params: { boardId: string };
+  params: Promise<{ boardId: string }>;
 }
 
 interface ReclaimBody {
@@ -12,7 +12,7 @@ interface ReclaimBody {
 }
 
 export async function POST(req: NextRequest, context: RouteContext) {
-  const { boardId } = context.params;
+  const { boardId } = await context.params;
   const body = (await req.json()) as ReclaimBody;
   const claimCode = body.claimCode?.trim();
 

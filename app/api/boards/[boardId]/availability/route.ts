@@ -4,7 +4,7 @@ import type { Participant } from "@/lib/weekend-utils";
 import { getParticipantCookieName } from "@/lib/session";
 
 interface RouteContext {
-  params: { boardId: string };
+  params: Promise<{ boardId: string }>;
 }
 
 interface AvailabilityBody {
@@ -12,7 +12,7 @@ interface AvailabilityBody {
 }
 
 export async function PUT(req: NextRequest, context: RouteContext) {
-  const { boardId } = context.params;
+  const { boardId } = await context.params;
   const body = (await req.json()) as AvailabilityBody;
   const busyWeekendFridays = body.busyWeekendFridays ?? [];
 
@@ -57,9 +57,10 @@ export async function PUT(req: NextRequest, context: RouteContext) {
   await sql/* sql */`delete from busy_weekends where participant_id = ${participantId}`;
 
   if (busyWeekendFridays.length > 0) {
-    for (const friday of busyWeekendFridays) {
-      await sql/* sql */`insert into busy_weekends (participant_id, friday) values (${participantId}, ${friday})`;
-    }
+    const values = busyWeekendFridays
+      .map((friday) => sql`(${participantId}, ${friday}::date)`)
+      .reduce((acc, val) => sql`${acc}, ${val}`);
+    await sql`insert into busy_weekends (participant_id, friday) values ${values}`;
   }
 
   const newState: Participant["state"] =

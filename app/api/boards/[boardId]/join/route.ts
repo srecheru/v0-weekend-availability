@@ -4,7 +4,7 @@ import type { Participant } from "@/lib/weekend-utils";
 import { getParticipantCookieName, PARTICIPANT_COOKIE_OPTIONS } from "@/lib/session";
 
 interface RouteContext {
-  params: { boardId: string };
+  params: Promise<{ boardId: string }>;
 }
 
 const CLAIM_WORDS = [
@@ -25,7 +25,7 @@ interface JoinBody {
 }
 
 export async function POST(req: NextRequest, context: RouteContext) {
-  const { boardId } = context.params;
+  const { boardId } = await context.params;
   const body = (await req.json()) as JoinBody;
   const displayName = body.displayName?.trim();
 
@@ -69,11 +69,25 @@ export async function POST(req: NextRequest, context: RouteContext) {
     );
   }
 
-  const claimIndexRows =
-    await sql/* sql */`select count(*)::int as count from participants where board_id = ${boardId}`;
-  const { count: existingCount } = claimIndexRows[0] as { count: number };
-  const claimWord =
-    CLAIM_WORDS[existingCount % CLAIM_WORDS.length];
+  // Use the existing count (already queried above) for the claim word index.
+  // Also collect claim codes already in use on this board to avoid collisions.
+  const usedClaimRows =
+    await sql/* sql */`select lower(claim_code) as code from participants where board_id = ${boardId}`;
+  const usedCodes = new Set(usedClaimRows.map((r) => (r as { code: string }).code));
+
+  let claimWord = CLAIM_WORDS[count % CLAIM_WORDS.length];
+  // If there's a collision (e.g. a participant was deleted and the index recycled),
+  // walk through the list to find an unused word.
+  if (usedCodes.has(claimWord)) {
+    const available = CLAIM_WORDS.find((w) => !usedCodes.has(w));
+    if (!available) {
+      return NextResponse.json(
+        { error: "Board has exhausted all claim codes. Cannot join." },
+        { status: 400 }
+      );
+    }
+    claimWord = available;
+  }
 
   const participantId = crypto.randomUUID();
 

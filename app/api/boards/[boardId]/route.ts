@@ -4,11 +4,11 @@ import type { Board, Participant } from "@/lib/weekend-utils";
 import { getParticipantCookieName } from "@/lib/session";
 
 interface RouteContext {
-  params: { boardId: string };
+  params: Promise<{ boardId: string }>;
 }
 
 export async function GET(req: NextRequest, context: RouteContext) {
-  const { boardId } = context.params;
+  const { boardId } = await context.params;
 
   const boardRows =
     await sql/* sql */`select

@@ -9,11 +9,11 @@ import {
 import { parseISO } from "date-fns";
 
 interface RouteContext {
-  params: { boardId: string };
+  params: Promise<{ boardId: string }>;
 }
 
 export async function GET(_req: NextRequest, context: RouteContext) {
-  const { boardId } = context.params;
+  const { boardId } = await context.params;
 
   const boardRows =
     await sql/* sql */`select
