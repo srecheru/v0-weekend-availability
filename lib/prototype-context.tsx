@@ -27,6 +27,8 @@ interface PrototypeContextType {
   updateBoardName: (name: string) => void;
   boardCreated: boolean;
   markBoardCreated: () => void;
+  participantJoined: boolean;
+  markParticipantJoined: () => void;
   isBoardFull: boolean;
   currentParticipant: Participant | undefined;
   saveStatus: "idle" | "saving" | "saved";
@@ -75,6 +77,7 @@ export function PrototypeProvider({ children }: { children: React.ReactNode }) {
   );
   const [viewRole, setViewRoleState] = useState<ViewRole>("creator");
   const [boardCreated, setBoardCreated] = useState(true);
+  const [participantJoined, setParticipantJoined] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
   const [hydrated, setHydrated] = useState(false);
 
@@ -82,10 +85,12 @@ export function PrototypeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const savedRole = readSession<ViewRole>("wab-view-role", "creator");
     const savedScenario = readSession<ScenarioName>("wab-scenario", "partial");
+    const savedParticipantJoined = readSession<boolean>("wab-participant-joined", false);
     setViewRoleState(savedRole);
     setScenarioName(savedScenario);
     setScenario(getScenarioByName(savedScenario));
     setBoardCreated(savedScenario !== "empty");
+    setParticipantJoined(savedParticipantJoined);
     setHydrated(true);
   }, []);
 
@@ -99,12 +104,19 @@ export function PrototypeProvider({ children }: { children: React.ReactNode }) {
     setScenarioName(name);
     setScenario(getScenarioByName(name));
     setBoardCreated(name !== "empty");
+    setParticipantJoined(false);
+    writeSession("wab-participant-joined", false);
     setSaveStatus("idle");
     writeSession("wab-scenario", name);
   }, []);
 
   const markBoardCreated = useCallback(() => {
     setBoardCreated(true);
+  }, []);
+
+  const markParticipantJoined = useCallback(() => {
+    setParticipantJoined(true);
+    writeSession("wab-participant-joined", true);
   }, []);
 
   const toggleBusyWeekend = useCallback(
@@ -217,6 +229,8 @@ export function PrototypeProvider({ children }: { children: React.ReactNode }) {
       updateBoardName,
       boardCreated,
       markBoardCreated,
+      participantJoined,
+      markParticipantJoined,
       isBoardFull,
       currentParticipant,
       saveStatus,
@@ -233,6 +247,8 @@ export function PrototypeProvider({ children }: { children: React.ReactNode }) {
       updateBoardName,
       boardCreated,
       markBoardCreated,
+      participantJoined,
+      markParticipantJoined,
       isBoardFull,
       currentParticipant,
       saveStatus,

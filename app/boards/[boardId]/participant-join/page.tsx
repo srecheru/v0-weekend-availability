@@ -18,7 +18,7 @@ import { AlertCircle } from "lucide-react";
 
 export default function ParticipantJoinPage() {
   const router = useRouter();
-  const { board, participants, weekendFridays, isBoardFull, addParticipant } =
+  const { board, participants, weekendFridays, isBoardFull, addParticipant, markParticipantJoined } =
     usePrototype();
   const [name, setName] = useState("");
   const [error, setError] = useState("");
@@ -43,6 +43,7 @@ export default function ParticipantJoinPage() {
     }
     setError("");
     addParticipant(trimmed);
+    markParticipantJoined();
     router.push(`/boards/${board.boardId}/my-availability`);
   };
 
@@ -55,6 +56,7 @@ export default function ParticipantJoinPage() {
       return;
     }
     setReclaimError("");
+    markParticipantJoined();
     if (found.state === "ADDED_AVAILABILITY") {
       router.push(`/boards/${board.boardId}/group-availability`);
     } else {
