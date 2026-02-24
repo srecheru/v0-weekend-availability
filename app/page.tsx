@@ -58,7 +58,7 @@ export default function CreateBoardPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Create a Board</CardTitle>
+            <CardTitle>Create a Group Board</CardTitle>
             <CardDescription>
               Set up a new board and share it with your group.
             </CardDescription>
