@@ -29,7 +29,7 @@ export function ParticipantList() {
       <p className="text-sm text-muted-foreground">{names.join(", ")}</p>
       {pendingCount > 0 && (
         <p className="text-xs text-muted-foreground">
-          {pendingCount} haven{"'"}t added availability yet
+          {pendingCount} participant{pendingCount !== 1 ? "s" : ""} pending availability
         </p>
       )}
     </div>
