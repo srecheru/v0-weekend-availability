@@ -85,12 +85,17 @@ export function PrototypeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const savedRole = readSession<ViewRole>("wab-view-role", "creator");
     const savedScenario = readSession<ScenarioName>("wab-scenario", "partial");
+    const restoredScenario = getScenarioByName(savedScenario);
     const savedParticipantJoined = readSession<boolean>("wab-participant-joined", false);
+    // If the scenario already has the participant, they're joined regardless of storage
+    const alreadyInBoard = restoredScenario.participants.some(
+      (p) => p.participantId === restoredScenario.currentParticipantId
+    );
     setViewRoleState(savedRole);
     setScenarioName(savedScenario);
-    setScenario(getScenarioByName(savedScenario));
+    setScenario(restoredScenario);
     setBoardCreated(savedScenario !== "empty");
-    setParticipantJoined(savedParticipantJoined);
+    setParticipantJoined(savedParticipantJoined || alreadyInBoard);
     setHydrated(true);
   }, []);
 
@@ -101,11 +106,16 @@ export function PrototypeProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const switchScenario = useCallback((name: ScenarioName) => {
+    const newScenario = getScenarioByName(name);
     setScenarioName(name);
-    setScenario(getScenarioByName(name));
+    setScenario(newScenario);
     setBoardCreated(name !== "empty");
-    setParticipantJoined(false);
-    writeSession("wab-participant-joined", false);
+    // If the scenario already has the current participant in the list, treat as joined
+    const alreadyInBoard = newScenario.participants.some(
+      (p) => p.participantId === newScenario.currentParticipantId
+    );
+    setParticipantJoined(alreadyInBoard);
+    writeSession("wab-participant-joined", alreadyInBoard);
     setSaveStatus("idle");
     writeSession("wab-scenario", name);
   }, []);
