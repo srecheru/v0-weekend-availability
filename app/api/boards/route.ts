@@ -82,7 +82,11 @@ export async function POST(req: NextRequest) {
     created_at: string;
   };
 
-  const toDateOnly = (iso: string) => iso.slice(0, 10);
+  const toDateOnly = (v: unknown): string => {
+    if (v instanceof Date) return v.toISOString().slice(0, 10);
+    if (typeof v === "string") return v.slice(0, 10);
+    return String(v);
+  };
 
   const board: Board = {
     boardId: row.id,

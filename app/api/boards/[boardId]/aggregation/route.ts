@@ -34,7 +34,11 @@ export async function GET(_req: NextRequest, context: RouteContext) {
   };
 
   // Use date-only substrings to avoid UTC-to-local timezone shift
-  const toDateOnly = (iso: string) => iso.slice(0, 10);
+  const toDateOnly = (v: unknown): string => {
+    if (v instanceof Date) return v.toISOString().slice(0, 10);
+    if (typeof v === "string") return v.slice(0, 10);
+    return String(v);
+  };
   const start = parseISO(toDateOnly(board.date_range_start));
   const end = parseISO(toDateOnly(board.date_range_end));
   const weekendDates = getWeekendsInRange(start, end);

@@ -33,8 +33,8 @@ export async function GET(req: NextRequest, context: RouteContext) {
     name: string;
     timezone: string;
     duration_months: number;
-    date_range_start: string;
-    date_range_end: string;
+    date_range_start: string | Date;
+    date_range_end: string | Date;
     participant_cap: number;
     join_token: string;
     created_at: string;
@@ -59,7 +59,11 @@ export async function GET(req: NextRequest, context: RouteContext) {
   // Strip timestamps to date-only strings (YYYY-MM-DD) so parseISO on the
   // client creates local-midnight dates instead of UTC-midnight (which can
   // shift to the previous day in US timezones).
-  const toDateOnly = (iso: string) => iso.slice(0, 10);
+  const toDateOnly = (v: unknown): string => {
+    if (v instanceof Date) return v.toISOString().slice(0, 10);
+    if (typeof v === "string") return v.slice(0, 10);
+    return String(v);
+  };
 
   const participants: Participant[] = participantRows.map((row) => {
     const r = row as {
