@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import {
   computeAggregation,
@@ -24,13 +24,23 @@ export default function ParticipantJoinPage() {
   const router = useRouter();
   const params = useParams<{ boardId: string }>();
   const boardId = params.boardId;
-  const { board, participants } = useBoard(boardId);
+  const { board, participants, currentParticipant, isLoading } = useBoard(boardId);
   const isBoardFull =
     (participants?.length ?? 0) >= (board?.participantCap ?? 0);
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [reclaimError, setReclaimError] = useState("");
   const [showReclaim, setShowReclaim] = useState(false);
+
+  // If the user already has a valid session for this board, redirect them
+  useEffect(() => {
+    if (isLoading || !board || !currentParticipant) return;
+    if (currentParticipant.state === "ADDED_AVAILABILITY") {
+      router.replace(`/boards/${boardId}/group-availability`);
+    } else {
+      router.replace(`/boards/${boardId}/my-availability`);
+    }
+  }, [isLoading, board, currentParticipant, boardId, router]);
 
   const weekendFridays = useMemo(() => {
     if (!board) return [];
@@ -56,7 +66,8 @@ export default function ParticipantJoinPage() {
         (p) => p.displayName.toLowerCase() === trimmed.toLowerCase()
       )
     ) {
-      setError("That name is already taken. Use your claim code to reclaim.");
+      setError("That name is already taken. Use your claim code below to reclaim your session.");
+      setShowReclaim(true);
       return;
     }
     setError("");
