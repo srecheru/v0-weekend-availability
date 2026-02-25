@@ -29,9 +29,6 @@ export function ClaimCodeInput({ onReclaim }: ClaimCodeInputProps) {
         <KeyRound className="size-4" />
         Reclaim your spot
       </div>
-      <p className="text-xs text-muted-foreground">
-        Enter the claim code you received when you first joined.
-      </p>
       <div className="flex gap-2">
         <Input
           value={code}
