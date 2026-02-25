@@ -18,7 +18,7 @@ export default function MyAvailabilityPage() {
   const params = useParams<{ boardId: string }>();
   const boardId = params.boardId;
   const router = useRouter();
-  const { board, currentParticipant } = useBoard(boardId);
+  const { board, currentParticipant, isLoading } = useBoard(boardId);
   const [busyFridays, setBusyFridays] = useState<string[]>([]);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">(
     "idle"
@@ -41,11 +41,11 @@ export default function MyAvailabilityPage() {
   }, [currentParticipant]);
 
   useEffect(() => {
-    if (!board) return;
+    if (isLoading || !board) return;
     if (!currentParticipant) {
       router.replace(`/boards/${board.boardId}/participant-join`);
     }
-  }, [board, currentParticipant, router]);
+  }, [board, currentParticipant, isLoading, router]);
 
   const handleToggleWeekend = useCallback((fridayIso: string) => {
     setBusyFridays((prev) => {

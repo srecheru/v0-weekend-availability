@@ -15,15 +15,15 @@ export default function GroupAvailabilityPage() {
   const params = useParams<{ boardId: string }>();
   const boardId = params.boardId;
   const router = useRouter();
-  const { board, currentParticipant } = useBoard(boardId);
+  const { board, currentParticipant, isLoading } = useBoard(boardId);
   const { data } = useAggregation(boardId);
 
-  if (!board) {
+  if (!board || isLoading) {
     return null;
   }
 
-  if (!currentParticipant || currentParticipant.state !== "ADDED_AVAILABILITY") {
-    router.replace(`/boards/${board.boardId}/my-availability`);
+  if (!currentParticipant) {
+    router.replace(`/boards/${board.boardId}/participant-join`);
     return null;
   }
 

@@ -140,7 +140,7 @@ export async function POST(req: NextRequest, context: RouteContext) {
   const res = NextResponse.json({ participant });
   res.cookies.set(cookieName, participant.participantId, {
     ...PARTICIPANT_COOKIE_OPTIONS,
-    path: `/boards/${boardId}`,
+    path: `/`,
   });
 
   return res;
