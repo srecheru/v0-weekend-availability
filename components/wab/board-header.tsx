@@ -1,12 +1,15 @@
 "use client";
 
-import { parseISO, format } from "date-fns";
+import { parseISO, format, startOfDay, isAfter } from "date-fns";
 import type { Board } from "@/lib/weekend-utils";
 import { CalendarDays, Globe } from "lucide-react";
 
 export function BoardHeader({ board }: { board: Board }) {
-  const start = parseISO(board.dateRangeStart);
+  const storedStart = parseISO(board.dateRangeStart);
   const end = parseISO(board.dateRangeEnd);
+  // Show today as the effective start if the stored start is in the past
+  const today = startOfDay(new Date());
+  const start = isAfter(today, storedStart) ? today : storedStart;
   const formattedRange =
     start.getFullYear() === end.getFullYear()
       ? `${format(start, "MMM d")} \u2013 ${format(end, "MMM d, yyyy")}`
