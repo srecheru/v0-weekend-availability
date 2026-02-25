@@ -12,6 +12,7 @@ import {
   subMonths,
   getDay,
   startOfMonth,
+  startOfDay,
   endOfMonth,
   startOfWeek,
   endOfWeek,
@@ -146,6 +147,7 @@ export function PersonalCalendar({
 }: PersonalCalendarProps) {
   const start = parseISO(dateRangeStart);
   const end = parseISO(dateRangeEnd);
+  const today = startOfDay(new Date());
 
   return (
     <CalendarShell
@@ -156,6 +158,8 @@ export function PersonalCalendar({
         const fridayIso = getFridayForDate(date, weekendFridays);
         const isBusy = fridayIso ? busyFridays.includes(fridayIso) : false;
         const isWeekendDay = isWeekend && fridayIso !== null;
+        // A weekend is in the past if its Sunday (last day) is before today
+        const isPast = fridayIso ? isBefore(addDays(parseISO(fridayIso), 2), today) : isBefore(date, today);
 
         if (!inMonth) {
           return (
@@ -167,7 +171,25 @@ export function PersonalCalendar({
 
         if (!isWeekendDay) {
           return (
-            <div className="flex items-center justify-center w-full aspect-square text-sm text-muted-foreground/30">
+            <div className={cn(
+              "flex items-center justify-center w-full aspect-square text-sm",
+              isPast ? "text-muted-foreground/20" : "text-muted-foreground/30"
+            )}>
+              {format(date, "d")}
+            </div>
+          );
+        }
+
+        // Past weekends are shown dimmed and not clickable
+        if (isPast) {
+          return (
+            <div
+              className={cn(
+                "flex items-center justify-center w-full aspect-square text-sm text-muted-foreground/30",
+                isFriday(date) && "rounded-l-lg",
+                isSunday(date) && "rounded-r-lg",
+              )}
+            >
               {format(date, "d")}
             </div>
           );
@@ -210,6 +232,7 @@ export function GroupCalendar({
 }: GroupCalendarProps) {
   const start = parseISO(dateRangeStart);
   const end = parseISO(dateRangeEnd);
+  const today = startOfDay(new Date());
 
   const tierMap = useMemo(() => {
     const map = new Map<string, TierType>();
@@ -233,6 +256,7 @@ export function GroupCalendar({
         const fridayIso = getFridayForDate(date, weekendFridays);
         const tier = fridayIso ? tierMap.get(fridayIso) : undefined;
         const isWeekendDay = isWeekend && fridayIso !== null;
+        const isPast = fridayIso ? isBefore(addDays(parseISO(fridayIso), 2), today) : isBefore(date, today);
 
         if (!inMonth) {
           return (
@@ -242,9 +266,12 @@ export function GroupCalendar({
           );
         }
 
-        if (!isWeekendDay) {
+        if (!isWeekendDay || isPast) {
           return (
-            <div className="flex items-center justify-center w-full aspect-square text-sm text-muted-foreground/30">
+            <div className={cn(
+              "flex items-center justify-center w-full aspect-square text-sm",
+              isPast ? "text-muted-foreground/20" : "text-muted-foreground/30"
+            )}>
               {format(date, "d")}
             </div>
           );
