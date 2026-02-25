@@ -24,7 +24,7 @@ export function ClaimCodeInput({ onReclaim }: ClaimCodeInputProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+    <div className="flex flex-col gap-3">
       <div className="flex items-center gap-2 text-sm font-medium text-foreground">
         <KeyRound className="size-4" />
         Reclaim your spot
@@ -39,12 +39,18 @@ export function ClaimCodeInput({ onReclaim }: ClaimCodeInputProps) {
           placeholder="e.g. mountain"
           className="flex-1"
           aria-label="Claim code"
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              handleSubmit(e);
+            }
+          }}
         />
-        <Button type="submit" variant="outline">
+        <Button type="button" variant="outline" onClick={handleSubmit}>
           Reclaim
         </Button>
       </div>
       {error && <p className="text-xs text-destructive">{error}</p>}
-    </form>
+    </div>
   );
 }

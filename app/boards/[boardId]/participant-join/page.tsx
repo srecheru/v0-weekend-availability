@@ -92,6 +92,7 @@ export default function ParticipantJoinPage() {
   };
 
   const handleReclaim = (code: string) => {
+    setReclaimError("");
     void (async () => {
       try {
         const res = await fetch(`/api/boards/${boardId}/reclaim`, {
@@ -170,7 +171,7 @@ export default function ParticipantJoinPage() {
                 weekends next.
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex flex-col gap-4">
               <form onSubmit={handleJoin} className="flex flex-col gap-4">
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="display-name">Display Name</Label>
@@ -188,10 +189,11 @@ export default function ParticipantJoinPage() {
                 </Button>
               </form>
 
-              <div className="mt-4 border-t pt-4 flex flex-col gap-3">
+              <div className="border-t pt-4 flex flex-col gap-3">
                 <Button
                   variant="ghost"
                   size="sm"
+                  type="button"
                   className="text-muted-foreground w-full"
                   onClick={() => setShowReclaim((prev) => !prev)}
                 >
