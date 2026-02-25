@@ -33,8 +33,10 @@ export async function GET(_req: NextRequest, context: RouteContext) {
     date_range_end: string;
   };
 
-  const start = parseISO(board.date_range_start);
-  const end = parseISO(board.date_range_end);
+  // Use date-only substrings to avoid UTC-to-local timezone shift
+  const toDateOnly = (iso: string) => iso.slice(0, 10);
+  const start = parseISO(toDateOnly(board.date_range_start));
+  const end = parseISO(toDateOnly(board.date_range_end));
   const weekendDates = getWeekendsInRange(start, end);
   const weekendFridays = weekendDates.map(fridayToIso);
 
@@ -72,7 +74,7 @@ export async function GET(_req: NextRequest, context: RouteContext) {
       displayName: r.display_name,
       claimCode: r.claim_code,
       state: r.state as Participant["state"],
-      busyWeekendFridays: r.busy_fridays ?? [],
+      busyWeekendFridays: (r.busy_fridays ?? []).map(toDateOnly),
       joinedAt: r.joined_at,
       lastUpdatedAt: r.last_updated_at,
     };

@@ -82,13 +82,15 @@ export async function POST(req: NextRequest) {
     created_at: string;
   };
 
+  const toDateOnly = (iso: string) => iso.slice(0, 10);
+
   const board: Board = {
     boardId: row.id,
     boardName: row.name,
     timezone: row.timezone,
     durationMonths: row.duration_months as DurationMonths,
-    dateRangeStart: row.date_range_start,
-    dateRangeEnd: row.date_range_end,
+    dateRangeStart: toDateOnly(row.date_range_start),
+    dateRangeEnd: toDateOnly(row.date_range_end),
     participantCap: row.participant_cap,
     joinToken: row.join_token,
     createdAt: row.created_at,

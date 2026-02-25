@@ -74,19 +74,24 @@ export async function GET(req: NextRequest, context: RouteContext) {
       displayName: r.display_name,
       claimCode: r.claim_code,
       state: r.state as Participant["state"],
-      busyWeekendFridays: r.busy_fridays ?? [],
+      busyWeekendFridays: (r.busy_fridays ?? []).map(toDateOnly),
       joinedAt: r.joined_at,
       lastUpdatedAt: r.last_updated_at,
     };
   });
+
+  // Strip timestamps to date-only strings (YYYY-MM-DD) so parseISO on the
+  // client creates local-midnight dates instead of UTC-midnight (which can
+  // shift to the previous day in US timezones).
+  const toDateOnly = (iso: string) => iso.slice(0, 10);
 
   const board: Board = {
     boardId: b.id,
     boardName: b.name,
     timezone: b.timezone,
     durationMonths: b.duration_months as Board["durationMonths"],
-    dateRangeStart: b.date_range_start,
-    dateRangeEnd: b.date_range_end,
+    dateRangeStart: toDateOnly(b.date_range_start),
+    dateRangeEnd: toDateOnly(b.date_range_end),
     participantCap: b.participant_cap,
     joinToken: b.join_token,
     createdAt: b.created_at,
