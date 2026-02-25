@@ -56,6 +56,11 @@ export async function GET(req: NextRequest, context: RouteContext) {
     group by p.id
     order by p.joined_at asc`;
 
+  // Strip timestamps to date-only strings (YYYY-MM-DD) so parseISO on the
+  // client creates local-midnight dates instead of UTC-midnight (which can
+  // shift to the previous day in US timezones).
+  const toDateOnly = (iso: string) => iso.slice(0, 10);
+
   const participants: Participant[] = participantRows.map((row) => {
     const r = row as {
       id: string;
@@ -79,11 +84,6 @@ export async function GET(req: NextRequest, context: RouteContext) {
       lastUpdatedAt: r.last_updated_at,
     };
   });
-
-  // Strip timestamps to date-only strings (YYYY-MM-DD) so parseISO on the
-  // client creates local-midnight dates instead of UTC-midnight (which can
-  // shift to the previous day in US timezones).
-  const toDateOnly = (iso: string) => iso.slice(0, 10);
 
   const board: Board = {
     boardId: b.id,
