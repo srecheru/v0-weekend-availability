@@ -199,9 +199,6 @@ export default function ParticipantJoinPage() {
                 </Button>
                 {showReclaim && (
                   <div className="flex flex-col gap-2">
-                    <p className="text-xs text-muted-foreground">
-                      Enter the claim code you were given when you first joined.
-                    </p>
                     <ClaimCodeInput onReclaim={handleReclaim} />
                     {reclaimError && (
                       <p className="text-xs text-destructive">{reclaimError}</p>
