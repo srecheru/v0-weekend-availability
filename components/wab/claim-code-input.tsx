@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { KeyRound } from "lucide-react";
 
 interface ClaimCodeInputProps {
-  onReclaim: (code: string) => void;
+  onReclaim: (code: string) => Promise<void> | void;
 }
 
 export function ClaimCodeInput({ onReclaim }: ClaimCodeInputProps) {
@@ -14,7 +14,7 @@ export function ClaimCodeInput({ onReclaim }: ClaimCodeInputProps) {
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent | React.KeyboardEvent) => {
+  const handleSubmit = async (e: React.FormEvent | React.KeyboardEvent) => {
     e.preventDefault();
     if (isSubmitting) return;
     if (!code.trim()) {
@@ -23,7 +23,13 @@ export function ClaimCodeInput({ onReclaim }: ClaimCodeInputProps) {
     }
     setError("");
     setIsSubmitting(true);
-    onReclaim(code.trim().toLowerCase());
+    try {
+      await onReclaim(code.trim().toLowerCase());
+    } catch {
+      // parent handles errors via its own state
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

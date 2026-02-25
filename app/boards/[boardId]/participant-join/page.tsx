@@ -96,32 +96,30 @@ export default function ParticipantJoinPage() {
     })();
   };
 
-  const handleReclaim = (code: string) => {
+  const handleReclaim = async (code: string) => {
     setReclaimError("");
-    void (async () => {
-      try {
-        const res = await fetch(`/api/boards/${boardId}/reclaim`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ claimCode: code }),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          setReclaimError(data?.error ?? "Invalid claim code. Please try again.");
-          return;
-        }
-        const participantState = data?.participant?.state;
-        // Use full page navigation so the browser picks up the new session cookie
-        if (participantState === "ADDED_AVAILABILITY") {
-          window.location.href = `/boards/${boardId}/group-availability`;
-        } else {
-          window.location.href = `/boards/${boardId}/my-availability`;
-        }
-      } catch (err) {
-        console.error(err);
-        setReclaimError("Invalid claim code. Please try again.");
+    try {
+      const res = await fetch(`/api/boards/${boardId}/reclaim`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ claimCode: code }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setReclaimError(data?.error ?? "Invalid claim code. Please try again.");
+        return;
       }
-    })();
+      const participantState = data?.participant?.state;
+      // Use full page navigation so the browser picks up the new session cookie
+      if (participantState === "ADDED_AVAILABILITY") {
+        window.location.href = `/boards/${boardId}/group-availability`;
+      } else {
+        window.location.href = `/boards/${boardId}/my-availability`;
+      }
+    } catch (err) {
+      console.error(err);
+      setReclaimError("Invalid claim code. Please try again.");
+    }
   };
 
   if (!board) {
