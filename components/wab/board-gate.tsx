@@ -1,53 +1,9 @@
 "use client";
 
-import Link from "next/link";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { CalendarPlus, UserPlus } from "lucide-react";
-import { ScreenNav } from "@/components/wab/screen-nav";
-import { ScenarioSwitcher } from "@/components/wab/scenario-switcher";
-
 /**
  * Gate for pages that require board creation (creator) or board join (participant).
- * Shows a friendly prompt to go create / join first.
+ * Currently a passthrough -- the individual pages handle their own redirect logic.
  */
 export function BoardGate({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
-}
-
-function GateShell({
-  icon,
-  title,
-  description,
-  actionLabel,
-  actionHref,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  actionLabel: string;
-  actionHref: string;
-}) {
-  return (
-    <main className="min-h-screen pb-20">
-      <div className="mx-auto max-w-md px-4 py-6 flex flex-col items-center justify-center gap-4 min-h-[60vh]">
-        <div className="rounded-full bg-muted p-4">{icon}</div>
-        <Card className="w-full">
-          <CardContent className="flex flex-col items-center gap-3 text-center pt-6">
-            <h2 className="text-lg font-semibold text-foreground text-balance">
-              {title}
-            </h2>
-            <p className="text-sm text-muted-foreground text-balance">
-              {description}
-            </p>
-            <Button asChild className="w-full mt-2">
-              <Link href={actionHref}>{actionLabel}</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-      <ScreenNav />
-      <ScenarioSwitcher />
-    </main>
-  );
 }

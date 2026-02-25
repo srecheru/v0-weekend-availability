@@ -2,7 +2,12 @@
 
 import { useState, useMemo } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { computeAggregation } from "@/lib/weekend-utils";
+import {
+  computeAggregation,
+  getWeekendsInRange,
+  fridayToIso,
+} from "@/lib/weekend-utils";
+import { parseISO } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -11,7 +16,6 @@ import { BoardHeader } from "@/components/wab/board-header";
 import { TierSummaryBar } from "@/components/wab/tier-summary-bar";
 import { ParticipantList } from "@/components/wab/participant-list";
 import { ClaimCodeInput } from "@/components/wab/claim-code-input";
-import { ScenarioSwitcher } from "@/components/wab/scenario-switcher";
 import { ScreenNav } from "@/components/wab/screen-nav";
 import { AlertCircle } from "lucide-react";
 import { useBoard } from "@/lib/wab-hooks";
@@ -28,15 +32,16 @@ export default function ParticipantJoinPage() {
   const [reclaimError, setReclaimError] = useState("");
   const [showReclaim, setShowReclaim] = useState(false);
 
+  const weekendFridays = useMemo(() => {
+    if (!board) return [];
+    const start = parseISO(board.dateRangeStart);
+    const end = parseISO(board.dateRangeEnd);
+    return getWeekendsInRange(start, end).map(fridayToIso);
+  }, [board]);
+
   const { summary, hasAggregation, pendingCount } = useMemo(
-    () =>
-      computeAggregation(
-        participants ?? [],
-        board
-          ? [] // aggregation endpoint will be used on group view; keep summary here minimal
-          : []
-      ),
-    [participants, board]
+    () => computeAggregation(participants ?? [], weekendFridays),
+    [participants, weekendFridays]
   );
 
   const handleJoin = (e: React.FormEvent) => {
@@ -110,7 +115,7 @@ export default function ParticipantJoinPage() {
   return (
     <main className="min-h-screen pb-20">
       <div className="mx-auto max-w-md px-4 py-6 flex flex-col gap-3">
-        <BoardHeader />
+        <BoardHeader board={board} />
 
         <Card>
           <CardHeader>
@@ -122,7 +127,7 @@ export default function ParticipantJoinPage() {
               hasAggregation={hasAggregation}
               pendingCount={pendingCount}
             />
-            <ParticipantList />
+            <ParticipantList participants={participants ?? []} participantCap={board.participantCap} />
           </CardContent>
         </Card>
 
@@ -198,8 +203,7 @@ export default function ParticipantJoinPage() {
         )}
       </div>
 
-      <ScreenNav />
-      <ScenarioSwitcher />
+      <ScreenNav boardId={board.boardId} viewRole="participant" />
     </main>
   );
 }

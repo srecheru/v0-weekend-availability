@@ -1,14 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { parseISO } from "date-fns";
+import { getWeekendsInRange, fridayToIso } from "@/lib/weekend-utils";
+import { Card, CardContent } from "@/components/ui/card";
 import { BoardHeader } from "@/components/wab/board-header";
 import { PersonalCalendar } from "@/components/wab/weekend-calendar";
 import { WeekendListPersonal } from "@/components/wab/weekend-list-personal";
 import { SaveIndicator } from "@/components/wab/save-indicator";
 import { AvailabilityTabs } from "@/components/wab/screen-nav";
-import { ScenarioSwitcher } from "@/components/wab/scenario-switcher";
 import { BoardGate } from "@/components/wab/board-gate";
 import { ScreenNav } from "@/components/wab/screen-nav";
 import { useBoard } from "@/lib/wab-hooks";
@@ -22,10 +23,20 @@ export default function MyAvailabilityPage() {
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">(
     "idle"
   );
+  const busyFridaysRef = useRef(busyFridays);
+
+  const weekendFridays = useMemo(() => {
+    if (!board) return [];
+    const start = parseISO(board.dateRangeStart);
+    const end = parseISO(board.dateRangeEnd);
+    return getWeekendsInRange(start, end).map(fridayToIso);
+  }, [board]);
 
   useEffect(() => {
     if (currentParticipant) {
-      setBusyFridays(currentParticipant.busyWeekendFridays ?? []);
+      const initial = currentParticipant.busyWeekendFridays ?? [];
+      setBusyFridays(initial);
+      busyFridaysRef.current = initial;
     }
   }, [currentParticipant]);
 
@@ -36,24 +47,24 @@ export default function MyAvailabilityPage() {
     }
   }, [board, currentParticipant, router]);
 
-  const handleToggleWeekend = (fridayIso: string) => {
+  const handleToggleWeekend = useCallback((fridayIso: string) => {
     setBusyFridays((prev) => {
       const isBusy = prev.includes(fridayIso);
-      if (isBusy) {
-        return prev.filter((f) => f !== fridayIso);
-      }
-      return [...prev, fridayIso];
+      const next = isBusy ? prev.filter((f) => f !== fridayIso) : [...prev, fridayIso];
+      busyFridaysRef.current = next;
+      return next;
     });
 
     setSaveStatus("saving");
 
     void (async () => {
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      // Small debounce so rapid taps batch into one save
+      await new Promise((resolve) => setTimeout(resolve, 400));
       try {
         const res = await fetch(`/api/boards/${boardId}/availability`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ busyWeekendFridays: busyFridays }),
+          body: JSON.stringify({ busyWeekendFridays: busyFridaysRef.current }),
         });
         if (!res.ok) {
           setSaveStatus("idle");
@@ -65,7 +76,7 @@ export default function MyAvailabilityPage() {
         setSaveStatus("idle");
       }
     })();
-  };
+  }, [boardId]);
 
   if (!board) {
     return null;
@@ -93,7 +104,7 @@ export default function MyAvailabilityPage() {
               dateRangeStart={board.dateRangeStart}
               dateRangeEnd={board.dateRangeEnd}
               busyFridays={busyFridays}
-              weekendFridays={[]}
+              weekendFridays={weekendFridays}
               onToggleWeekend={handleToggleWeekend}
             />
           </CardContent>
@@ -101,7 +112,7 @@ export default function MyAvailabilityPage() {
 
         <WeekendListPersonal
           busyFridays={busyFridays}
-          onRemove={toggleBusyWeekend}
+          onRemove={handleToggleWeekend}
         />
 
         {currentParticipant && (
@@ -114,7 +125,6 @@ export default function MyAvailabilityPage() {
       </div>
 
       <ScreenNav boardId={board.boardId} viewRole="participant" />
-      <ScenarioSwitcher />
     </main>
     </BoardGate>
   );

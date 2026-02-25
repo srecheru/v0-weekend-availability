@@ -7,7 +7,6 @@ import { GroupCalendar } from "@/components/wab/weekend-calendar";
 import { TierSummaryBar } from "@/components/wab/tier-summary-bar";
 import { WeekendListGroup } from "@/components/wab/weekend-list-group";
 import { AvailabilityTabs } from "@/components/wab/screen-nav";
-import { ScenarioSwitcher } from "@/components/wab/scenario-switcher";
 import { BoardGate } from "@/components/wab/board-gate";
 import { ScreenNav } from "@/components/wab/screen-nav";
 import { useBoard, useAggregation } from "@/lib/wab-hooks";
@@ -77,7 +76,6 @@ export default function GroupAvailabilityPage() {
       </div>
 
       <ScreenNav boardId={board.boardId} viewRole="participant" />
-      <ScenarioSwitcher />
     </main>
     </BoardGate>
   );

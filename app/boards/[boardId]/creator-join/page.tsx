@@ -3,14 +3,18 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { computeAggregation } from "@/lib/weekend-utils";
+import {
+  computeAggregation,
+  getWeekendsInRange,
+  fridayToIso,
+} from "@/lib/weekend-utils";
+import { parseISO } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BoardHeader } from "@/components/wab/board-header";
 import { ShareLinkCard } from "@/components/wab/share-link-card";
 import { TierSummaryBar } from "@/components/wab/tier-summary-bar";
 import { ParticipantList } from "@/components/wab/participant-list";
-import { ScenarioSwitcher } from "@/components/wab/scenario-switcher";
 import { ScreenNav } from "@/components/wab/screen-nav";
 import { BoardGate } from "@/components/wab/board-gate";
 import { CalendarPlus, KeyRound } from "lucide-react";
@@ -23,12 +27,9 @@ export default function CreatorJoinPage() {
 
   const weekendFridays = useMemo(() => {
     if (!board) return [];
-    // Derive weekends on the client from the board's date range
-    // to keep the aggregation behavior consistent.
-    const { getWeekendsInRange, fridayToIso, computeDateRange } = require("@/lib/weekend-utils") as typeof import("@/lib/weekend-utils");
-    const range = computeDateRange(board.durationMonths);
-    const weekends = getWeekendsInRange(range.start, range.end);
-    return weekends.map(fridayToIso);
+    const start = parseISO(board.dateRangeStart);
+    const end = parseISO(board.dateRangeEnd);
+    return getWeekendsInRange(start, end).map(fridayToIso);
   }, [board]);
 
   const { summary, hasAggregation, pendingCount } = useMemo(
@@ -94,7 +95,6 @@ export default function CreatorJoinPage() {
       </div>
 
       <ScreenNav boardId={board.boardId} viewRole="creator" />
-      <ScenarioSwitcher />
     </main>
     </BoardGate>
   );
