@@ -83,7 +83,7 @@ export default function ParticipantJoinPage() {
           setError(data?.error ?? "Failed to join board");
           return;
         }
-        router.push(`/boards/${boardId}/my-availability`);
+        window.location.href = `/boards/${boardId}/my-availability`;
       } catch (err) {
         console.error(err);
         setError("Failed to join board");
@@ -106,10 +106,11 @@ export default function ParticipantJoinPage() {
           return;
         }
         const participantState = data?.participant?.state;
+        // Use full page navigation so the browser picks up the new session cookie
         if (participantState === "ADDED_AVAILABILITY") {
-          router.push(`/boards/${boardId}/group-availability`);
+          window.location.href = `/boards/${boardId}/group-availability`;
         } else {
-          router.push(`/boards/${boardId}/my-availability`);
+          window.location.href = `/boards/${boardId}/my-availability`;
         }
       } catch (err) {
         console.error(err);
