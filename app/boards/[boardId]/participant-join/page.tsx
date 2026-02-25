@@ -31,6 +31,7 @@ export default function ParticipantJoinPage() {
   const [error, setError] = useState("");
   const [reclaimError, setReclaimError] = useState("");
   const [showReclaim, setShowReclaim] = useState(false);
+  const [isJoining, setIsJoining] = useState(false);
 
   // If the user already has a valid session for this board, redirect them
   useEffect(() => {
@@ -56,6 +57,7 @@ export default function ParticipantJoinPage() {
 
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isJoining) return;
     const trimmed = name.trim();
     if (!trimmed) {
       setError("Display name is required");
@@ -71,6 +73,7 @@ export default function ParticipantJoinPage() {
       return;
     }
     setError("");
+    setIsJoining(true);
     void (async () => {
       try {
         const res = await fetch(`/api/boards/${boardId}/join`, {
@@ -81,12 +84,14 @@ export default function ParticipantJoinPage() {
         const data = await res.json();
         if (!res.ok) {
           setError(data?.error ?? "Failed to join board");
+          setIsJoining(false);
           return;
         }
         window.location.href = `/boards/${boardId}/my-availability`;
       } catch (err) {
         console.error(err);
         setError("Failed to join board");
+        setIsJoining(false);
       }
     })();
   };
@@ -185,8 +190,8 @@ export default function ParticipantJoinPage() {
                   />
                   {error && <p className="text-xs text-destructive">{error}</p>}
                 </div>
-                <Button type="submit" className="w-full">
-                  Join Board
+                <Button type="submit" className="w-full" disabled={isJoining}>
+                  {isJoining ? "Joining..." : "Join Board"}
                 </Button>
               </form>
 

@@ -12,14 +12,17 @@ interface ClaimCodeInputProps {
 export function ClaimCodeInput({ onReclaim }: ClaimCodeInputProps) {
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent | React.KeyboardEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
     if (!code.trim()) {
       setError("Please enter your claim code");
       return;
     }
     setError("");
+    setIsSubmitting(true);
     onReclaim(code.trim().toLowerCase());
   };
 
@@ -39,6 +42,7 @@ export function ClaimCodeInput({ onReclaim }: ClaimCodeInputProps) {
           placeholder="e.g. mountain"
           className="flex-1"
           aria-label="Claim code"
+          disabled={isSubmitting}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               e.preventDefault();
@@ -46,8 +50,8 @@ export function ClaimCodeInput({ onReclaim }: ClaimCodeInputProps) {
             }
           }}
         />
-        <Button type="button" variant="outline" onClick={handleSubmit}>
-          Reclaim
+        <Button type="button" variant="outline" onClick={handleSubmit} disabled={isSubmitting}>
+          {isSubmitting ? "Reclaiming..." : "Reclaim"}
         </Button>
       </div>
       {error && <p className="text-xs text-destructive">{error}</p>}
