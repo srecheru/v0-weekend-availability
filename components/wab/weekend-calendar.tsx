@@ -59,7 +59,13 @@ function CalendarShell({
   rangeEnd: Date;
   renderDay: (date: Date, inMonth: boolean) => React.ReactNode;
 }) {
-  const [currentMonth, setCurrentMonth] = useState(rangeStart);
+  // Default to today's month, clamped within the board's date range
+  const [currentMonth, setCurrentMonth] = useState(() => {
+    const now = startOfMonth(new Date());
+    if (isBefore(now, startOfMonth(rangeStart))) return rangeStart;
+    if (isAfter(now, startOfMonth(rangeEnd))) return rangeEnd;
+    return now;
+  });
   const days = useMemo(() => getCalendarDays(currentMonth), [currentMonth]);
 
   const canGoBack = !isBefore(subMonths(startOfMonth(currentMonth), 0), rangeStart) &&
