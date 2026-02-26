@@ -69,8 +69,11 @@ export default function CreatorJoinPage() {
           setIsJoining(false);
           return;
         }
-        // Re-fetch board data so SWR picks up the new session cookie
-        await mutate();
+        console.log("[v0] Join succeeded, data:", data);
+        // Force SWR to discard stale cache and re-fetch with the new session cookie
+        const updated = await mutate(undefined, { revalidate: true });
+        console.log("[v0] After mutate, currentParticipantId:", updated?.currentParticipantId);
+        console.log("[v0] After mutate, participants:", updated?.participants?.map((p: { displayName: string }) => p.displayName));
         setIsJoining(false);
       } catch (err) {
         console.error(err);
@@ -93,8 +96,8 @@ export default function CreatorJoinPage() {
         setReclaimError(data?.error ?? "Invalid claim code. Please try again.");
         return;
       }
-      // Re-fetch board data so SWR picks up the new session cookie
-      await mutate();
+      // Force SWR to discard stale cache and re-fetch with the new session cookie
+      await mutate(undefined, { revalidate: true });
     } catch (err) {
       console.error(err);
       setReclaimError("Invalid claim code. Please try again.");
