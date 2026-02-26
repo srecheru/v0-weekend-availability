@@ -26,7 +26,7 @@ import { useBoard } from "@/lib/wab-hooks";
 export default function CreatorJoinPage() {
   const params = useParams<{ boardId: string }>();
   const boardId = params.boardId;
-  const { board, participants, currentParticipant } = useBoard(boardId);
+  const { board, participants, currentParticipant, mutate } = useBoard(boardId);
 
   const isBoardFull =
     (participants?.length ?? 0) >= (board?.participantCap ?? 0);
@@ -69,8 +69,9 @@ export default function CreatorJoinPage() {
           setIsJoining(false);
           return;
         }
-        // Reload the share page so the browser picks up the new session cookie
-        window.location.href = `/boards/${boardId}/creator-join`;
+        // Re-fetch board data so SWR picks up the new session cookie
+        await mutate();
+        setIsJoining(false);
       } catch (err) {
         console.error(err);
         setError("Failed to join board");
@@ -92,8 +93,8 @@ export default function CreatorJoinPage() {
         setReclaimError(data?.error ?? "Invalid claim code. Please try again.");
         return;
       }
-      // Reload the share page so the browser picks up the new session cookie
-      window.location.href = `/boards/${boardId}/creator-join`;
+      // Re-fetch board data so SWR picks up the new session cookie
+      await mutate();
     } catch (err) {
       console.error(err);
       setReclaimError("Invalid claim code. Please try again.");
