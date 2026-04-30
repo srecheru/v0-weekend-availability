@@ -7,7 +7,7 @@ import { BoardHeader } from "@/components/wab/board-header";
 import { PersonalCalendar } from "@/components/wab/weekend-calendar";
 import { WeekendListPersonal } from "@/components/wab/weekend-list-personal";
 import { SaveIndicator } from "@/components/wab/save-indicator";
-import { AvailabilityTabs } from "@/components/wab/screen-nav";
+import { AvailabilityTabs, ScreenNav } from "@/components/wab/screen-nav";
 import { Loader2 } from "lucide-react";
 import { useEffect } from "react";
 
@@ -86,6 +86,8 @@ export default function MyAvailabilityPage() {
           Claim code: <strong className="font-mono">{currentParticipant.claimCode}</strong>
         </p>
       </div>
+      
+      <ScreenNav />
     </main>
   );
 }

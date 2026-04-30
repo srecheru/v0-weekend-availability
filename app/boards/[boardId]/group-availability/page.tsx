@@ -8,7 +8,7 @@ import { BoardHeader } from "@/components/wab/board-header";
 import { GroupCalendar } from "@/components/wab/weekend-calendar";
 import { TierSummaryBar } from "@/components/wab/tier-summary-bar";
 import { WeekendListGroup } from "@/components/wab/weekend-list-group";
-import { AvailabilityTabs } from "@/components/wab/screen-nav";
+import { AvailabilityTabs, ScreenNav } from "@/components/wab/screen-nav";
 import { Loader2 } from "lucide-react";
 
 export default function GroupAvailabilityPage() {
@@ -66,6 +66,8 @@ export default function GroupAvailabilityPage() {
           <WeekendListGroup weekends={weekends} hasAggregation={hasAggregation} />
         </div>
       </div>
+      
+      <ScreenNav />
     </main>
   );
 }

@@ -14,6 +14,7 @@ import { BoardHeader } from "@/components/wab/board-header";
 import { ShareLinkCard } from "@/components/wab/share-link-card";
 import { TierSummaryBar } from "@/components/wab/tier-summary-bar";
 import { ParticipantList } from "@/components/wab/participant-list";
+import { ScreenNav } from "@/components/wab/screen-nav";
 import { CalendarPlus, KeyRound, Loader2 } from "lucide-react";
 
 export default function CreatorJoinPage() {
@@ -140,6 +141,8 @@ export default function CreatorJoinPage() {
           </Button>
         )}
       </div>
+      
+      <ScreenNav />
     </main>
   );
 }
