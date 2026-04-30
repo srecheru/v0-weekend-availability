@@ -14,6 +14,7 @@ import { ScenarioSwitcher } from "@/components/wab/scenario-switcher";
  */
 export function BoardGate({ children }: { children: React.ReactNode }) {
   const { boardCreated, participantJoined, viewRole, board } = usePrototype();
+  const showScenarioSwitcher = viewRole === "creator";
 
   // Creator flow: must have created a board
   if (viewRole === "creator" && !boardCreated) {
@@ -24,6 +25,7 @@ export function BoardGate({ children }: { children: React.ReactNode }) {
         description="Create a group board first, then you can share it, add your availability, and see the group view."
         actionLabel="Create a Group Board"
         actionHref="/"
+        showScenarioSwitcher={showScenarioSwitcher}
       />
     );
   }
@@ -37,6 +39,7 @@ export function BoardGate({ children }: { children: React.ReactNode }) {
         description="You need to join this board or reclaim your spot with a claim code before you can view availability."
         actionLabel="Go to Join Page"
         actionHref={`/boards/${board.boardId}/participant-join`}
+        showScenarioSwitcher={false}
       />
     );
   }
@@ -50,12 +53,14 @@ function GateShell({
   description,
   actionLabel,
   actionHref,
+  showScenarioSwitcher = true,
 }: {
   icon: React.ReactNode;
   title: string;
   description: string;
   actionLabel: string;
   actionHref: string;
+  showScenarioSwitcher?: boolean;
 }) {
   return (
     <main className="min-h-screen pb-20">
@@ -76,7 +81,7 @@ function GateShell({
         </Card>
       </div>
       <ScreenNav />
-      <ScenarioSwitcher />
+      {showScenarioSwitcher && <ScenarioSwitcher />}
     </main>
   );
 }

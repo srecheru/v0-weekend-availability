@@ -14,7 +14,7 @@ import { BoardGate } from "@/components/wab/board-gate";
 import { ScreenNav } from "@/components/wab/screen-nav";
 
 export default function GroupAvailabilityPage() {
-  const { board, participants, weekendFridays } = usePrototype();
+  const { board, participants, weekendFridays, viewRole } = usePrototype();
 
   const { weekends, summary, hasAggregation, pendingCount } = useMemo(
     () => computeAggregation(participants, weekendFridays),
@@ -63,7 +63,7 @@ export default function GroupAvailabilityPage() {
       </div>
 
       <ScreenNav />
-      <ScenarioSwitcher />
+      {viewRole === "creator" && <ScenarioSwitcher />}
     </main>
     </BoardGate>
   );

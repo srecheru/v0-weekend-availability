@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { usePrototype } from "@/lib/prototype-context";
 import { computeAggregation } from "@/lib/weekend-utils";
@@ -12,14 +12,19 @@ import { BoardHeader } from "@/components/wab/board-header";
 import { TierSummaryBar } from "@/components/wab/tier-summary-bar";
 import { ParticipantList } from "@/components/wab/participant-list";
 import { ClaimCodeInput } from "@/components/wab/claim-code-input";
-import { ScenarioSwitcher } from "@/components/wab/scenario-switcher";
-import { ScreenNav } from "@/components/wab/screen-nav";
 import { AlertCircle } from "lucide-react";
 
 export default function ParticipantJoinPage() {
   const router = useRouter();
-  const { board, participants, weekendFridays, isBoardFull, addParticipant, markParticipantJoined } =
+  const { board, participants, weekendFridays, isBoardFull, addParticipant, markParticipantJoined, setViewRole, viewRole } =
     usePrototype();
+
+  // Auto-switch to participant view when entering via this join link
+  useEffect(() => {
+    if (viewRole !== "participant") {
+      setViewRole("participant");
+    }
+  }, [viewRole, setViewRole]);
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [reclaimError, setReclaimError] = useState("");
@@ -156,9 +161,6 @@ export default function ParticipantJoinPage() {
           </Card>
         )}
       </div>
-
-      <ScreenNav />
-      <ScenarioSwitcher />
     </main>
   );
 }

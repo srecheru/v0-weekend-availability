@@ -17,6 +17,7 @@ export default function MyAvailabilityPage() {
     currentParticipant,
     weekendFridays,
     toggleBusyWeekend,
+    viewRole,
   } = usePrototype();
 
   const busyFridays = currentParticipant?.busyWeekendFridays ?? [];
@@ -64,7 +65,7 @@ export default function MyAvailabilityPage() {
       </div>
 
       <ScreenNav />
-      <ScenarioSwitcher />
+      {viewRole === "creator" && <ScenarioSwitcher />}
     </main>
     </BoardGate>
   );
