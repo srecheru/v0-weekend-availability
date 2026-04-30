@@ -13,6 +13,7 @@ import { TierSummaryBar } from "@/components/wab/tier-summary-bar";
 import { ParticipantList } from "@/components/wab/participant-list";
 import { ClaimCodeInput } from "@/components/wab/claim-code-input";
 import { ScreenNav } from "@/components/wab/screen-nav";
+import { ScenarioSwitcher } from "@/components/wab/scenario-switcher";
 import { AlertCircle } from "lucide-react";
 
 export default function ParticipantJoinPage() {
@@ -166,6 +167,7 @@ export default function ParticipantJoinPage() {
       </div>
 
       <ScreenNav />
+      <ScenarioSwitcher />
     </main>
   );
 }

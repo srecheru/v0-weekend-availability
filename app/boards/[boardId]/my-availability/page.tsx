@@ -65,7 +65,7 @@ export default function MyAvailabilityPage() {
       </div>
 
       <ScreenNav />
-      {viewRole === "creator" && <ScenarioSwitcher />}
+      <ScenarioSwitcher />
     </main>
     </BoardGateMyAvailability>
   );

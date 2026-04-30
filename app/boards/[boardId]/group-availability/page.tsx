@@ -63,7 +63,7 @@ export default function GroupAvailabilityPage() {
       </div>
 
       <ScreenNav />
-      {viewRole === "creator" && <ScenarioSwitcher />}
+      <ScenarioSwitcher />
     </main>
     </BoardGate>
   );
