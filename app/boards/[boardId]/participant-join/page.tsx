@@ -17,7 +17,7 @@ import { AlertCircle } from "lucide-react";
 
 export default function ParticipantJoinPage() {
   const router = useRouter();
-  const { board, participants, weekendFridays, isBoardFull, addParticipant, markParticipantJoined, setViewRole, viewRole } =
+  const { board, participants, weekendFridays, isBoardFull, addParticipant, markParticipantJoined, setViewRole, viewRole, participantJoined } =
     usePrototype();
 
   // Auto-switch to participant view when entering via this join link
@@ -91,75 +91,77 @@ export default function ParticipantJoinPage() {
           </CardContent>
         </Card>
 
-        {isBoardFull ? (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                <AlertCircle className="size-4 text-muted-foreground" />
-                Board is Full
-              </CardTitle>
-              <CardDescription>
-                This board already has {board.participantCap} participants. If
-                you were already part of this board, use your claim code below.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ClaimCodeInput onReclaim={handleReclaim} />
-              {reclaimError && (
-                <p className="text-xs text-destructive mt-2">{reclaimError}</p>
-              )}
-            </CardContent>
-          </Card>
-        ) : (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Join this Board</CardTitle>
-              <CardDescription>
-                Enter your name to join. You{"'"}ll be able to mark your busy
-                weekends next.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleJoin} className="flex flex-col gap-4">
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="display-name">Display Name</Label>
-                  <Input
-                    id="display-name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="e.g. Alex"
-                    aria-invalid={!!error}
-                  />
-                  {error && <p className="text-xs text-destructive">{error}</p>}
-                </div>
-                <Button type="submit" className="w-full">
-                  Join Board
-                </Button>
-              </form>
-
-              <div className="mt-4 border-t pt-4 flex flex-col gap-3">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-muted-foreground w-full"
-                  onClick={() => setShowReclaim((prev) => !prev)}
-                >
-                  Previously Joined?
-                </Button>
-                {showReclaim && (
-                  <div className="flex flex-col gap-2">
-                    <p className="text-xs text-muted-foreground">
-                      Enter the claim code you were given when you first joined.
-                    </p>
-                    <ClaimCodeInput onReclaim={handleReclaim} />
-                    {reclaimError && (
-                      <p className="text-xs text-destructive">{reclaimError}</p>
-                    )}
-                  </div>
+        {!participantJoined && (
+          isBoardFull ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <AlertCircle className="size-4 text-muted-foreground" />
+                  Board is Full
+                </CardTitle>
+                <CardDescription>
+                  This board already has {board.participantCap} participants. If
+                  you were already part of this board, use your claim code below.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ClaimCodeInput onReclaim={handleReclaim} />
+                {reclaimError && (
+                  <p className="text-xs text-destructive mt-2">{reclaimError}</p>
                 )}
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Join this Board</CardTitle>
+                <CardDescription>
+                  Enter your name to join. You{"'"}ll be able to mark your busy
+                  weekends next.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleJoin} className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="display-name">Display Name</Label>
+                    <Input
+                      id="display-name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="e.g. Alex"
+                      aria-invalid={!!error}
+                    />
+                    {error && <p className="text-xs text-destructive">{error}</p>}
+                  </div>
+                  <Button type="submit" className="w-full">
+                    Join Board
+                  </Button>
+                </form>
+
+                <div className="mt-4 border-t pt-4 flex flex-col gap-3">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground w-full"
+                    onClick={() => setShowReclaim((prev) => !prev)}
+                  >
+                    Previously Joined?
+                  </Button>
+                  {showReclaim && (
+                    <div className="flex flex-col gap-2">
+                      <p className="text-xs text-muted-foreground">
+                        Enter the claim code you were given when you first joined.
+                      </p>
+                      <ClaimCodeInput onReclaim={handleReclaim} />
+                      {reclaimError && (
+                        <p className="text-xs text-destructive">{reclaimError}</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )
         )}
       </div>
 
