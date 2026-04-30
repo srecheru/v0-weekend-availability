@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePrototype } from "@/lib/prototype-context";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,8 +9,15 @@ import { Check, Copy, Link } from "lucide-react";
 export function ShareLinkCard() {
   const { board } = usePrototype();
   const [copied, setCopied] = useState(false);
+  const [origin, setOrigin] = useState("");
 
-  const shareUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/boards/${board.boardId}/participant-join?joinToken=${board.joinToken}`;
+  // Set origin only on client after mount to avoid hydration mismatch
+  useEffect(() => {
+    setOrigin(window.location.origin);
+  }, []);
+
+  const relativePath = `/boards/${board.boardId}/participant-join?joinToken=${board.joinToken}`;
+  const shareUrl = origin ? `${origin}${relativePath}` : relativePath;
 
   const handleCopy = async () => {
     try {
