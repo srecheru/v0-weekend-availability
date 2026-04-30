@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useBoardContext } from "@/lib/board-context";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Check, Copy, Link } from "lucide-react";
+import { Check, Copy, ExternalLink, Link } from "lucide-react";
 
 export function ShareLinkCard() {
   const { board } = useBoardContext();
@@ -54,6 +54,17 @@ export function ShareLinkCard() {
             ) : (
               <Copy className="size-4" />
             )}
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            asChild
+            className="shrink-0"
+            aria-label="Open in new tab"
+          >
+            <a href={shareUrl} target="_blank" rel="noopener noreferrer">
+              <ExternalLink className="size-4" />
+            </a>
           </Button>
         </div>
       </CardContent>
