@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
+import { PrototypeProvider } from '@/lib/prototype-context'
 import './globals.css'
 
 const _geist = Geist({ subsets: ["latin"] });
@@ -42,9 +43,11 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className="bg-background">
+    <html lang="en">
       <body className="font-sans antialiased">
-        {children}
+        <PrototypeProvider>
+          {children}
+        </PrototypeProvider>
         <Analytics />
       </body>
     </html>

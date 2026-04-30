@@ -1,29 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { useParams, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
+import { usePrototype } from "@/lib/prototype-context";
 import { cn } from "@/lib/utils";
-import { useBoardContext } from "@/lib/board-context";
-import { Home, Share2, CalendarCheck, Users, UserPlus } from "lucide-react";
+import { CalendarCheck, Users, Home, UserPlus, Share2 } from "lucide-react";
 
 export function ScreenNav() {
-  const params = useParams();
+  const { board, viewRole, hydrated } = usePrototype();
   const pathname = usePathname();
-  const boardId = params.boardId as string;
-  const boardBase = `/boards/${boardId}`;
-  
-  // Try to use board context if available, otherwise show basic nav
-  let participantJoined = false;
-  try {
-    const ctx = useBoardContext();
-    participantJoined = ctx.participantJoined;
-  } catch {
-    // Not within BoardProvider, show basic nav
-  }
+  const boardBase = `/boards/${board.boardId}`;
 
-  // Determine if we're in creator or participant flow based on pathname
-  const isCreatorFlow = pathname.includes("/creator-join") || pathname === "/";
-  
+  // Don't render nav until client has restored the persisted viewRole
+  if (!hydrated) return null;
+
   const creatorLinks = [
     {
       href: "/",
@@ -50,7 +40,7 @@ export function ScreenNav() {
   const participantLinks = [
     {
       href: `${boardBase}/participant-join`,
-      label: participantJoined ? "Board" : "Join",
+      label: "Join",
       icon: UserPlus,
     },
     {
@@ -65,28 +55,32 @@ export function ScreenNav() {
     },
   ];
 
-  const links = isCreatorFlow ? creatorLinks : participantLinks;
+  const links = viewRole === "creator" ? creatorLinks : participantLinks;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 border-t bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
-      <div className="mx-auto max-w-md flex justify-around py-2">
+    <nav
+      className="fixed bottom-0 left-0 right-0 z-40 bg-card border-t"
+      aria-label="Screen navigation"
+    >
+      <div className="mx-auto max-w-lg flex items-center justify-around py-1.5 px-2">
         {links.map((link) => {
+          const isActive = pathname === link.href;
           const Icon = link.icon;
-          const isActive = pathname === link.href || 
-            (link.href !== "/" && pathname.startsWith(link.href));
           return (
             <Link
               key={link.href}
               href={link.href}
               className={cn(
-                "flex flex-col items-center gap-0.5 px-3 py-1 text-xs transition-colors",
+                "flex flex-col items-center gap-0.5 px-3 py-1 rounded-md transition-colors text-center min-w-0",
                 isActive
                   ? "text-foreground"
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
-              <Icon className="size-5" />
-              <span>{link.label}</span>
+              <Icon className="size-4" />
+              <span className="text-[10px] font-medium leading-none truncate max-w-[56px]">
+                {link.label}
+              </span>
             </Link>
           );
         })}
@@ -97,9 +91,8 @@ export function ScreenNav() {
 
 // Tab nav for switching between My Availability and Group View within the board
 export function AvailabilityTabs({ activeTab }: { activeTab: "my" | "group" }) {
-  const params = useParams();
-  const boardId = params.boardId as string;
-  const boardBase = `/boards/${boardId}`;
+  const { board } = usePrototype();
+  const boardBase = `/boards/${board.boardId}`;
 
   return (
     <div className="flex rounded-lg bg-muted p-1 gap-1">

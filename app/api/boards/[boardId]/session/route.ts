@@ -13,8 +13,10 @@ export async function GET(
     const participantId = cookieStore.get(`participant_${boardId}`)?.value;
 
     if (!participantId) {
+      console.log("[v0] Session API - No participant cookie found for board:", boardId);
       return NextResponse.json({ participant: null });
     }
+    console.log("[v0] Session API - Found participant cookie:", participantId, "for board:", boardId);
 
     // Get participant info
     const participantResult = await sql`

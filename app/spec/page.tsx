@@ -109,9 +109,9 @@ export default function SpecPage() {
             database setup, and QA test suites.
           </p>
           <div className="flex flex-col gap-0.5 text-xs text-foreground/50 pt-2">
-            <span><strong className="text-foreground/70">Version:</strong> 1.0</span>
-            <span><strong className="text-foreground/70">Date:</strong> February 18, 2026</span>
-            <span><strong className="text-foreground/70">Source:</strong> Weekend Availability Board MVP Spec v4 (with Addenda A-D)</span>
+            <span><strong className="text-foreground/70">Version:</strong> 1.1 (updated)</span>
+            <span><strong className="text-foreground/70">Date:</strong> February 23, 2026</span>
+            <span><strong className="text-foreground/70">Source:</strong> Weekend Availability Board MVP Spec v4 (with Addenda A-D) + UX iteration feedback</span>
             <span><strong className="text-foreground/70">Scope:</strong> Front-end only: screens, components, interactions, styling, data shapes</span>
             <span><strong className="text-foreground/70">Out of Scope:</strong> Backend API, database schema, QA test suites</span>
             <span><strong className="text-foreground/70">Target Stack:</strong> Next.js 16 App Router, React 19, TypeScript, Tailwind CSS v4, shadcn/ui</span>
@@ -126,9 +126,9 @@ export default function SpecPage() {
             <ol className="flex flex-col gap-1 pl-5 list-decimal marker:text-foreground/30 text-sm text-foreground/70">
               <li><a href="#s1" className="hover:text-foreground underline underline-offset-2">Product Overview &amp; Scope Boundary</a></li>
               <li><a href="#s2" className="hover:text-foreground underline underline-offset-2">Design System: Color Tokens, Typography &amp; Spacing</a></li>
-              <li><a href="#s3" className="hover:text-foreground underline underline-offset-2">Route Map &amp; Navigation Architecture</a></li>
+              <li><a href="#s3" className="hover:text-foreground underline underline-offset-2">Route Map, Navigation &amp; Access Gating</a></li>
               <li><a href="#s4" className="hover:text-foreground underline underline-offset-2">Screen 1: Create Board</a></li>
-              <li><a href="#s5" className="hover:text-foreground underline underline-offset-2">Screen 2: Creator Join</a></li>
+              <li><a href="#s5" className="hover:text-foreground underline underline-offset-2">Screen 2: Creator Join (Share)</a></li>
               <li><a href="#s6" className="hover:text-foreground underline underline-offset-2">Screen 3: Participant Join</a></li>
               <li><a href="#s7" className="hover:text-foreground underline underline-offset-2">Screen 4: My Availability</a></li>
               <li><a href="#s8" className="hover:text-foreground underline underline-offset-2">Screen 5: Group Availability</a></li>
@@ -148,8 +148,8 @@ export default function SpecPage() {
         <Section id="s1">
           <H1>1. Product Overview &amp; Scope Boundary</H1>
           <P>
-            The Weekend Availability Board (WAB) helps a small, private group of up to 5 people find the best
-            weekends to get together. Each participant marks which weekends they are <strong>busy</strong> (exceptions-first
+            The Weekend Availability Board (WAB) helps a small, private group of 1-5 people find the best
+            weekends to get together. The creator specifies the number of participants (1-5) when creating the board. Each participant marks which weekends they are <strong>busy</strong> (exceptions-first
             model -- all weekends default to free). The app then aggregates everyone&apos;s availability into a
             color-coded, tier-ranked view showing which weekends have the most people free.
           </P>
@@ -157,7 +157,9 @@ export default function SpecPage() {
 
           <H2>1.1 Front-End Scope</H2>
           <Ul>
-            <Li>5 screens: Create Board, Creator Join, Participant Join, My Availability, Group Availability</Li>
+            <Li>5 screens: Create Board, Creator Join (Share), Participant Join, My Availability, Group Availability</Li>
+            <Li>Two distinct user flows: <strong>Creator</strong> (Create &rarr; Share &rarr; My Avail. &rarr; Group) and <strong>Participant</strong> (Join &rarr; My Avail. &rarr; Group)</Li>
+            <Li>Role-based navigation with access gating per flow</Li>
             <Li>Reusable component library for calendar, lists, tier badges, and navigation</Li>
             <Li>Client-side state management wired to API data shapes</Li>
             <Li>Autosave with debounce, retry, and failure UI</Li>
@@ -246,57 +248,73 @@ export default function SpecPage() {
             <Li><strong>Content max-width:</strong> <InlineCode>max-w-md</InlineCode> (28rem / 448px), centered with <InlineCode>mx-auto</InlineCode></Li>
             <Li><strong>Page padding:</strong> px-4 (16px horizontal), py-6 (24px vertical)</Li>
             <Li><strong>Card padding:</strong> Uses shadcn Card defaults (p-6 on CardContent)</Li>
-            <Li><strong>Spacing between sections:</strong> gap-5 (20px) vertical flex gap</Li>
+            <Li><strong>Spacing between sections:</strong> gap-3 (12px) on Join page, gap-5 (20px) on other pages</Li>
             <Li><strong>Bottom padding for nav:</strong> pb-20 (80px) on all pages to clear fixed bottom nav</Li>
           </Ul>
         </Section>
 
         {/* ═══ SECTION 3 ═══ */}
         <Section id="s3">
-          <H1>3. Route Map &amp; Navigation Architecture</H1>
+          <H1>3. Route Map, Navigation &amp; Access Gating</H1>
 
           <H2>3.1 Canonical Routes</H2>
           <DataTable
             headers={["Route", "Page", "Description"]}
             rows={[
-              ["/", "Create Board", "Entry point. Form to name a board and select planning window."],
-              ["/boards/{boardId}/creator-join", "Creator Join", "Post-creation landing. Share link + board overview + claim code."],
+              ["/", "Create Board", "Entry point. Form to name a board, set participant count, and select planning window."],
+              ["/boards/{boardId}/creator-join", "Creator Join (Share)", "Post-creation landing. Share link + board overview + claim code."],
               ["/boards/{boardId}/participant-join", "Participant Join", "Join form (or Board Full + reclaim). Accessed via share link."],
               ["/boards/{boardId}/my-availability", "My Availability", "Personal calendar to mark busy weekends. Autosave."],
               ["/boards/{boardId}/group-availability", "Group Availability", "Tier-colored group calendar + ranked weekend list."],
             ]}
           />
 
-          <H2>3.2 Navigation Flows</H2>
+          <H2>3.2 Two Distinct User Flows</H2>
+          <P>The app has two separate navigation paths depending on the user&apos;s role. The bottom navigation bar shows different links for each.</P>
+
+          <H3>3.2.1 Creator Flow</H3>
           <Ul>
+            <Li><strong>Nav links:</strong> Create (Home icon) &rarr; Share (Share2 icon) &rarr; My Avail. (CalendarCheck icon) &rarr; Group (Users icon)</Li>
             <Li><strong>Create Board submit</strong> &rarr; redirect to <InlineCode>{"/boards/{boardId}/creator-join"}</InlineCode></Li>
-            <Li><strong>Creator Join: &quot;Add My Availability&quot;</strong> &rarr; navigates to <InlineCode>/my-availability</InlineCode></Li>
-            <Li><strong>Participant Join: &quot;Join Board&quot; submit</strong> &rarr; redirect to <InlineCode>/my-availability</InlineCode></Li>
-            <Li><strong>Reclaim (claim code valid)</strong> &rarr; ADDED_AVAILABILITY state goes to <InlineCode>/group-availability</InlineCode>; otherwise <InlineCode>/my-availability</InlineCode></Li>
-            <Li><strong>My Availability &harr; Group View</strong>: Tab switcher component at top of both pages</Li>
+            <Li><strong>{"Creator Join: 'Add My Availability'"}</strong> &rarr; navigates to <InlineCode>/my-availability</InlineCode></Li>
+            <Li><strong>My Availability &harr; Group View:</strong> AvailabilityTabs segmented control at top of both pages</Li>
           </Ul>
 
-          <H2>3.3 Access Gating (Client-Side)</H2>
+          <H3>3.2.2 Participant Flow</H3>
           <Ul>
-            <Li>{"If user is not joined and accesses /my-availability or /group-availability → redirect to /participant-join"}</Li>
-            <Li>{"If user is joined but NOT in ADDED_AVAILABILITY and accesses /group-availability → redirect to /my-availability"}</Li>
-            <Li>{"If localStorage participantId is invalid/mismatched → clear key, redirect to /participant-join"}</Li>
+            <Li><strong>Nav links:</strong> Join (UserPlus icon) &rarr; My Avail. (CalendarCheck icon) &rarr; Group (Users icon)</Li>
+            <Li><strong>{"Participant Join: 'Join Board' submit"}</strong> &rarr; redirect to <InlineCode>/my-availability</InlineCode></Li>
+            <Li><strong>Reclaim (claim code valid)</strong> &rarr; ADDED_AVAILABILITY state goes to <InlineCode>/group-availability</InlineCode>; otherwise <InlineCode>/my-availability</InlineCode></Li>
+            <Li><strong>My Availability &harr; Group View:</strong> Same AvailabilityTabs as creator flow</Li>
           </Ul>
 
-          <H2>3.4 Bottom Navigation Bar (Prototype)</H2>
-          <P>A fixed bottom nav bar provides quick access to all 5 screens. This is a prototype-only convenience. In production, navigation would follow the access gating rules above.</P>
+          <H2>3.3 Access Gating (BoardGate Component)</H2>
+          <P>The <InlineCode>BoardGate</InlineCode> component wraps pages that require prior context. It checks the user&apos;s state and shows a friendly prompt if preconditions are not met.</P>
+          <DataTable
+            headers={["Role", "Condition", "Gate Behavior"]}
+            rows={[
+              ["Creator", "Board not yet created", "Shows 'No board yet' card with link to Create page"],
+              ["Participant", "Not joined and not reclaimed", "Shows 'Join the board first' card with link to Join page"],
+              ["Participant", "Already joined or recognized as existing participant", "Passes through -- no gate shown"],
+              ["Either", "All preconditions met", "Renders child page content normally"],
+            ]}
+          />
+          <Note>A participant who has previously joined the board (their participantId exists in the participant list) bypasses the gate automatically. The gate only blocks unknown visitors who have never joined or authenticated via claim code.</Note>
+
+          <H2>3.4 Bottom Navigation Bar</H2>
           <Ul>
             <Li>Fixed position: bottom-0, z-40, bg-card with border-t</Li>
-            <Li>5 icon+label links: Create, Creator, Join, My Avail., Group</Li>
+            <Li>Role-aware: shows 4 links for creator, 3 links for participant</Li>
             <Li>Active state: text-foreground; Inactive: text-muted-foreground</Li>
             <Li>Icon size: 16px (size-4). Label: 10px font, max-width 56px truncated</Li>
+            <Li>Waits for client hydration before rendering to prevent role flash</Li>
           </Ul>
         </Section>
 
         {/* ═══ SECTION 4 ═══ */}
         <Section id="s4">
           <H1>4. Screen 1: Create Board</H1>
-          <P>The entry point of the application. A centered card form for naming the board and selecting the planning window.</P>
+          <P>The entry point of the application. A centered card form for naming the board, setting participant count, and selecting the planning window.</P>
 
           <H2>4.1 Layout</H2>
           <Ul>
@@ -310,11 +328,19 @@ export default function SpecPage() {
             headers={["Field", "Type", "Placeholder", "Validation", "Helper Text"]}
             rows={[
               ["Board Name", "Text input", "e.g. Summer Hangouts", "Required, non-empty", "None"],
-              ["Planning Window", "Select dropdown", "Select duration", "Required (default: 3)", "'Full calendar months from today. Cannot be changed later.'"],
+              ["Participants", "Select dropdown (1-5)", "Select number", "Required", "'How many people will be coordinating (1-5).'"],
+              ["Planning Window", "Select dropdown", "Select duration", "Required (default: 3)", "'Full calendar months from today.'"],
             ]}
           />
 
-          <H3>4.2.1 Planning Window Options</H3>
+          <H3>4.2.1 Participants Options</H3>
+          <Ul>
+            <Li>Values: 1, 2, 3, 4, 5 (whole numbers only)</Li>
+            <Li>No default -- user must actively select</Li>
+            <Li>Sets the <InlineCode>participantCap</InlineCode> on the created board</Li>
+          </Ul>
+
+          <H3>4.2.2 Planning Window Options</H3>
           <Ul>
             <Li>Next 1 month</Li>
             <Li>Next 3 months (default)</Li>
@@ -322,36 +348,41 @@ export default function SpecPage() {
             <Li>Next 12 months</Li>
           </Ul>
 
-          <H2>4.3 Submit Button</H2>
+          <H2>4.3 Card Title</H2>
+          <P>The card title reads <strong>{'"Create a Group Board"'}</strong>.</P>
+
+          <H2>4.4 Submit Button</H2>
           <Ul>
             <Li>{"Label: 'Create Board'"}</Li>
             <Li>{"Full width, size='lg' (large), primary variant"}</Li>
-            <Li>{"On click: validate fields, then POST /api/boards, then redirect to /boards/{boardId}/creator-join"}</Li>
+            <Li>{"On click: validate all 3 fields, then POST /api/boards, then redirect to /boards/{boardId}/creator-join"}</Li>
           </Ul>
 
-          <H2>4.4 Error States</H2>
+          <H2>4.5 Error States</H2>
           <Ul>
             <Li>{"Empty board name: inline red text 'Board name is required' below the input"}</Li>
+            <Li>{"No participants selected: inline red text 'Number of participants is required'"}</Li>
             <Li>API error: display error message below form</Li>
           </Ul>
         </Section>
 
         {/* ═══ SECTION 5 ═══ */}
         <Section id="s5">
-          <H1>5. Screen 2: Creator Join</H1>
+          <H1>5. Screen 2: Creator Join (Share)</H1>
           <P>Displayed immediately after board creation. Shows the share link, board overview, the creator&apos;s claim code, and a CTA to add availability.</P>
 
           <H2>5.1 Layout</H2>
           <Ul>
-            <Li>{"Vertical stack: BoardHeader → ShareLinkCard → Board Overview Card → Claim Code Card → CTA Button"}</Li>
+            <Li>{"Vertical stack: BoardHeader \u2192 ShareLinkCard \u2192 Board Overview Card \u2192 Claim Code Card \u2192 CTA Button"}</Li>
             <Li>Max-width: max-w-md, px-4, py-6</Li>
+            <Li>Wrapped in <InlineCode>BoardGate</InlineCode> -- shows gate if board not yet created</Li>
           </Ul>
 
           <H2>5.2 Components Used</H2>
 
           <H3>5.2.1 BoardHeader</H3>
           <Ul>
-            <Li>Board name as h1 (text-2xl font-semibold)</Li>
+            <Li>Board name as h1 (text-2xl font-semibold) -- shows the name entered by the creator on the Create page</Li>
             <Li>Date range with CalendarDays icon + timezone with Globe icon</Li>
             <Li>Metadata line: text-sm text-muted-foreground, flex-wrap with gap-x-4</Li>
           </Ul>
@@ -388,38 +419,50 @@ export default function SpecPage() {
         {/* ═══ SECTION 6 ═══ */}
         <Section id="s6">
           <H1>6. Screen 3: Participant Join</H1>
-          <P>Accessed via the shared link. Shows a join form when the board has open spots, or a Board Full state with claim code reclaim when the board is at capacity.</P>
+          <P>Accessed via the shared link. The board overview is shown first, followed by either a join form (when open spots exist) or a Board Full state with claim code reclaim.</P>
 
           <H2>6.1 Layout</H2>
           <Ul>
-            <Li>{"Vertical stack: BoardHeader → Join Card (or Board Full Card) → Board Overview Card"}</Li>
+            <Li>{"Vertical stack: BoardHeader \u2192 Board Overview Card \u2192 Join Card (or Board Full Card)"}</Li>
+            <Li><strong>Board Overview card appears above the Join card</strong> -- so newcomers see who&apos;s on the board before deciding to join</Li>
+            <Li>Spacing: gap-3 (12px) for tighter card stacking</Li>
             <Li>Does NOT show the shareable URL (unlike Creator Join)</Li>
           </Ul>
 
-          <H2>6.2 Join Form (Board Not Full)</H2>
+          <H2>6.2 Board Overview Card</H2>
+          <Ul>
+            <Li>Same as Creator Join: TierSummaryBar + ParticipantList</Li>
+            <Li>Shown in BOTH the join and board-full states</Li>
+          </Ul>
+
+          <H2>6.3 Join Form (Board Not Full)</H2>
           <Ul>
             <Li>{"Card title: 'Join this Board'"}</Li>
             <Li>{"Description: 'Enter your name to join. You'll be able to mark your busy weekends next.'"}</Li>
             <Li>{"Field: Display Name text input, placeholder 'e.g. Alex'"}</Li>
-            <Li>{"Submit button: 'Join Board', full width"}</Li>
+            <Li>{"Submit button: 'Join Board', full width, primary variant"}</Li>
             <Li>Validation: name required, name must not be taken (case-insensitive)</Li>
-            <Li>{"On success: POST /api/boards/{boardId}/participants, store participantId in localStorage, redirect to /my-availability"}</Li>
+            <Li>{"On success: POST /api/boards/{boardId}/participants, store participantId, redirect to /my-availability"}</Li>
           </Ul>
 
-          <H2>6.3 Board Full State</H2>
+          <H3>6.3.1 Previously Joined? (Reclaim within Join Form)</H3>
+          <P>Below the Join button, a secondary <InlineCode>ghost</InlineCode> button labeled <strong>{'"Previously Joined?"'}</strong> allows returning users to reclaim their spot without the board being full.</P>
+          <Ul>
+            <Li>Button: variant=ghost, size=sm, text-muted-foreground, full width</Li>
+            <Li>Separated from the join form by a <InlineCode>border-t</InlineCode> divider with mt-4 pt-4</Li>
+            <Li>On click: toggles open a claim code section below</Li>
+            <Li>{"Expanded section: helper text 'Enter the claim code you were given when you first joined.' + ClaimCodeInput component"}</Li>
+            <Li>On valid code: same routing as board-full reclaim (ADDED_AVAILABILITY &rarr; group, otherwise &rarr; my-availability)</Li>
+            <Li>{"On invalid code: inline error 'Invalid claim code. Please try again.'"}</Li>
+          </Ul>
+
+          <H2>6.4 Board Full State</H2>
           <Ul>
             <Li>{"Card title: AlertCircle icon + 'Board is Full'"}</Li>
             <Li>{"Description: 'This board already has {cap} participants. If you were already part of this board, use your claim code below.'"}</Li>
             <Li>ClaimCodeInput component replaces the join form</Li>
-            <Li>{"Claim code field: text input, placeholder 'e.g. mountain'"}</Li>
-            <Li>{"Reclaim button: 'Reclaim', outline variant"}</Li>
-            <Li>{"On valid code: route based on participant state -- ADDED_AVAILABILITY goes to /group-availability, others to /my-availability"}</Li>
+            <Li>{"On valid code: route based on participant state"}</Li>
             <Li>{"On invalid code: inline error 'Invalid claim code. Please try again.'"}</Li>
-          </Ul>
-
-          <H2>6.4 Board Overview (Shown in Both States)</H2>
-          <Ul>
-            <Li>Same Board Overview Card as Creator Join: TierSummaryBar + ParticipantList</Li>
           </Ul>
 
           <H2>6.5 Error States</H2>
@@ -434,10 +477,11 @@ export default function SpecPage() {
         <Section id="s7">
           <H1>7. Screen 4: My Availability</H1>
           <P>The personal availability editor. Users tap weekend days (Fri/Sat/Sun) on a custom calendar to toggle them as busy. Below the calendar is a chronological list of busy weekends.</P>
+          <P>This page is wrapped in <InlineCode>BoardGate</InlineCode> -- creators must have created a board, participants must have joined or reclaimed.</P>
 
           <H2>7.1 Layout</H2>
           <Ul>
-            <Li>{"Vertical stack: BoardHeader → AvailabilityTabs → Instructions + SaveIndicator → Calendar Card → WeekendListPersonal → User Info Footer"}</Li>
+            <Li>{"Vertical stack: BoardHeader \u2192 AvailabilityTabs \u2192 Instructions + SaveIndicator \u2192 Calendar Card \u2192 WeekendListPersonal \u2192 User Info Footer"}</Li>
           </Ul>
 
           <H2>7.2 AvailabilityTabs</H2>
@@ -504,7 +548,7 @@ export default function SpecPage() {
 
           <H2>7.7 User Info Footer</H2>
           <Ul>
-            <Li>{"Text: 'Logged in as {name} · Claim code: {code}'"}</Li>
+            <Li>{"Text: 'Logged in as {name} \u00B7 Claim code: {code}'"}</Li>
             <Li>Centered, xs text, muted color</Li>
           </Ul>
 
@@ -514,7 +558,7 @@ export default function SpecPage() {
             <Li>Payload: full replacement of busyWeekendFridays array</Li>
             <Li>{"On failure: persistent banner 'Not saved. Retrying...' with 'Retry now' button"}</Li>
             <Li>Auto-retry: every 5 seconds, cap at 30 seconds (6 attempts)</Li>
-            <Li>After retry cap: clear localStorage, redirect to /participant-join</Li>
+            <Li>After retry cap: clear session, redirect to /participant-join</Li>
           </Ul>
         </Section>
 
@@ -522,10 +566,11 @@ export default function SpecPage() {
         <Section id="s8">
           <H1>8. Screen 5: Group Availability</H1>
           <P>The aggregated group view. Shows a tier-colored calendar where each weekend is colored by its availability tier, plus a ranked list of all weekends sorted by best-to-worst availability.</P>
+          <P>This page is wrapped in <InlineCode>BoardGate</InlineCode> -- same gating rules as My Availability.</P>
 
           <H2>8.1 Layout</H2>
           <Ul>
-            <Li>{"Vertical stack: BoardHeader → AvailabilityTabs (active='group') → TierSummaryBar → Group Calendar Card → Ranked Weekend List"}</Li>
+            <Li>{"Vertical stack: BoardHeader \u2192 AvailabilityTabs (active='group') \u2192 TierSummaryBar \u2192 Group Calendar Card \u2192 Ranked Weekend List"}</Li>
           </Ul>
 
           <H2>8.2 TierSummaryBar</H2>
@@ -533,7 +578,7 @@ export default function SpecPage() {
           <Ul>
             <Li>{"4 chips: {count} Everyone Free | {count} Majority Free | {count} Mixed | {count} All Busy"}</Li>
             <Li>Each chip: rounded-full px-3 py-1, text-xs font-medium, background + foreground from TIER_CONFIG</Li>
-            <Li>{"Below chips: '{n} participant(s) pending' if pendingCount > 0"}</Li>
+            <Li>{"Below chips: '{n} participant(s) pending availability' if pendingCount > 0 (singular/plural aware)"}</Li>
             <Li><strong>No aggregation state:</strong> {"'No availability added yet' in centered muted text"}</Li>
           </Ul>
 
@@ -570,8 +615,8 @@ export default function SpecPage() {
               <SubUl>
                 <Li>{"busyCount == 0: 'Everyone Free'"}</Li>
                 <Li>{"freeCount == 0: 'All Busy'"}</Li>
-                <Li>{"Mixed: '{freeCount} Free · {busyCount} Busy'"}</Li>
-                <Li>{"Append '· {pendingCount} Pending' if pendingCount > 0"}</Li>
+                <Li>{"Mixed: '{freeCount} Free \u00B7 {busyCount} Busy'"}</Li>
+                <Li>{"Append '\u00B7 {pendingCount} Pending' if pendingCount > 0"}</Li>
               </SubUl>
             </Li>
           </Ul>
@@ -591,7 +636,7 @@ export default function SpecPage() {
 
           <H3>8.4.4 Sort Order</H3>
           <Ul>
-            <Li>{"Primary: tier priority (Everyone Free → Majority Free → Mixed → All Busy)"}</Li>
+            <Li>{"Primary: tier priority (Everyone Free \u2192 Majority Free \u2192 Mixed \u2192 All Busy)"}</Li>
             <Li>Secondary: chronological by Friday date within each tier</Li>
           </Ul>
 
@@ -613,11 +658,11 @@ export default function SpecPage() {
           <DataTable
             headers={["Component", "File", "Props / Key Details"]}
             rows={[
-              ["BoardHeader", "board-header.tsx", "Reads board from context. Shows name, date range, timezone."],
+              ["BoardHeader", "board-header.tsx", "Reads board from context. Shows name (user-entered), date range, timezone."],
               ["TierBadge", "tier-badge.tsx", "Props: tier (TierType). Renders colored pill with tier label."],
-              ["TierSummaryBar", "tier-summary-bar.tsx", "Props: summary, hasAggregation, pendingCount. Shows 4 tier chips + pending text."],
+              ["TierSummaryBar", "tier-summary-bar.tsx", "Props: summary, hasAggregation, pendingCount. Shows 4 tier chips + pending text (singular/plural)."],
               ["ShareLinkCard", "share-link-card.tsx", "Reads board from context. Copy-to-clipboard share URL."],
-              ["ParticipantList", "participant-list.tsx", "Reads participants from context. Shows count/cap, names, pending count."],
+              ["ParticipantList", "participant-list.tsx", "Reads participants from context. Shows count/cap, names, '{n} participant(s) pending availability'."],
               ["SaveIndicator", "save-indicator.tsx", "Reads saveStatus from context. Idle/Saving/Saved states."],
               ["PersonalCalendar", "weekend-calendar.tsx", "Props: dateRange, busyFridays, weekendFridays, onToggle. Interactive."],
               ["GroupCalendar", "weekend-calendar.tsx", "Props: dateRange, weekends (WeekendRow[]), hasAggregation. Read-only."],
@@ -625,8 +670,9 @@ export default function SpecPage() {
               ["WeekendListGroup", "weekend-list-group.tsx", "Props: weekends (WeekendRow[]), hasAggregation. Ranked, expandable."],
               ["ClaimCodeInput", "claim-code-input.tsx", "Props: onReclaim callback. Text input + submit."],
               ["AvailabilityTabs", "screen-nav.tsx", "Props: activeTab ('my' | 'group'). Segmented control."],
-              ["ScreenNav", "screen-nav.tsx", "Fixed bottom nav. Reads board from context for URL construction."],
-              ["ScenarioSwitcher", "scenario-switcher.tsx", "Floating FAB. Prototype-only. Switches mock data scenarios."],
+              ["ScreenNav", "screen-nav.tsx", "Fixed bottom nav. Role-aware (creator 4 links, participant 3 links). Waits for hydration."],
+              ["BoardGate", "board-gate.tsx", "Wraps pages. Creator gate: boardCreated required. Participant gate: participantJoined required (auto-passes if already in participant list)."],
+              ["ScenarioSwitcher", "scenario-switcher.tsx", "Floating FAB. Prototype-only. Role toggle (creator/participant) + scenario switcher."],
             ]}
           />
         </Section>
@@ -639,12 +685,12 @@ export default function SpecPage() {
           <H2>10.1 Board</H2>
           <Code>{`interface Board {
   boardId: string;          // UUID
-  boardName: string;
+  boardName: string;        // User-entered on Create page
   timezone: string;         // IANA timezone
   durationMonths: 1 | 3 | 6 | 12;
   dateRangeStart: string;   // ISO YYYY-MM-DD
   dateRangeEnd: string;     // ISO YYYY-MM-DD
-  participantCap: number;   // fixed 5 for MVP
+  participantCap: number;   // 1-5, set by creator on Create page
   joinToken: string;        // opaque, for share URL
   createdAt: string;        // ISO datetime UTC
 }`}</Code>
@@ -716,11 +762,11 @@ interface WeekendRow {
             <Li><strong>Participant data:</strong> included in board response, plus specific participant data from join/reclaim</Li>
             <Li><strong>Group aggregation:</strong> {"fetched via GET /api/boards/{boardId}/group-availability"}</Li>
             <Li><strong>Availability edits:</strong> optimistic updates via SWR mutate, backed by PUT endpoint</Li>
-            <Li><strong>Session:</strong> {"participantId stored in localStorage key '{boardId}:participantId'"}</Li>
+            <Li><strong>Session:</strong> participant identity stored in HTTP-only cookie (set on join or reclaim). Claim code acts as lightweight auth token.</Li>
           </Ul>
 
           <H2>11.2 Prototype Architecture</H2>
-          <P>The prototype uses a React Context provider (PrototypeProvider) that holds all state in memory and provides mock data for 4 scenarios. No API calls are made.</P>
+          <P>The prototype uses a React Context provider (PrototypeProvider) that holds all state in memory with sessionStorage persistence for prototype controls (role, scenario). No API calls are made.</P>
 
           <H3>11.2.1 Context Shape</H3>
           <Code>{`interface PrototypeContextType {
@@ -728,20 +774,40 @@ interface WeekendRow {
   participants: Participant[];
   currentParticipantId: string;
   weekendFridays: string[];
-  scenarioName: ScenarioName;
+  scenarioName: ScenarioName;       // 'empty' | 'partial' | 'full' | 'board-full'
+  viewRole: ViewRole;               // 'creator' | 'participant'
   setScenario: (name: ScenarioName) => void;
+  setViewRole: (role: ViewRole) => void;
   toggleBusyWeekend: (fridayIso: string) => void;
   addParticipant: (name: string) => void;
+  updateBoardName: (name: string) => void;
+  boardCreated: boolean;            // gate flag for creator flow
+  markBoardCreated: () => void;
+  participantJoined: boolean;       // gate flag for participant flow
+  markParticipantJoined: () => void;
   isBoardFull: boolean;
   currentParticipant: Participant | undefined;
   saveStatus: 'idle' | 'saving' | 'saved';
+  hydrated: boolean;                // true after sessionStorage restore
 }`}</Code>
 
           <H3>11.2.2 Key Operations</H3>
           <Ul>
             <Li><strong>toggleBusyWeekend:</strong> {"Flips a Friday ISO date in/out of the current participant's busyWeekendFridays. Simulates autosave (800ms delay, then 'Saved' for 3s)."}</Li>
-            <Li><strong>addParticipant:</strong> Adds a new participant to the scenario, assigns a random claim code, sets as current.</Li>
-            <Li><strong>setScenario:</strong> {"Replaces all state with a predefined scenario's data."}</Li>
+            <Li><strong>addParticipant:</strong> Adds a new participant to the scenario, assigns a deterministic claim code, sets as current.</Li>
+            <Li><strong>updateBoardName:</strong> Updates the board name (called from Create page on submit).</Li>
+            <Li><strong>markBoardCreated:</strong> Sets boardCreated flag to true (called from Create page on submit).</Li>
+            <Li><strong>markParticipantJoined:</strong> Sets participantJoined flag to true + persists to sessionStorage (called from Join page on join or reclaim).</Li>
+            <Li><strong>setScenario:</strong> {"Replaces all state with a predefined scenario's data. Resets gate flags appropriately (auto-detects if current participant is already in the list)."}</Li>
+            <Li><strong>setViewRole:</strong> Switches between creator and participant view. Persisted to sessionStorage so it survives page navigations.</Li>
+          </Ul>
+
+          <H3>11.2.3 SessionStorage Persistence (Prototype Only)</H3>
+          <Ul>
+            <Li><InlineCode>wab-view-role</InlineCode>: persists selected role across page navigations</Li>
+            <Li><InlineCode>wab-scenario</InlineCode>: persists selected scenario across page navigations</Li>
+            <Li><InlineCode>wab-participant-joined</InlineCode>: persists participant gate state across page navigations</Li>
+            <Li>All are restored on mount via useEffect to avoid hydration mismatches</Li>
           </Ul>
         </Section>
 
@@ -753,7 +819,7 @@ interface WeekendRow {
           <Ul>
             <Li>Target: any Fri/Sat/Sun cell in the planning window</Li>
             <Li>Action: toggle the entire Fri-Sun block between free and busy</Li>
-            <Li>{"Visual feedback: instant color change (green tint ↔ coral fill)"}</Li>
+            <Li>{"Visual feedback: instant color change (green tint \u2194 coral fill)"}</Li>
             <Li>Side effect: triggers 800ms debounced autosave</Li>
           </Ul>
 
@@ -792,6 +858,13 @@ interface WeekendRow {
             <Li>{"During save: SaveIndicator shows 'Saving...' with spinner"}</Li>
             <Li>{"On success: shows 'Saved' with checkmark for 3 seconds"}</Li>
             <Li>On failure: persistent banner with retry</Li>
+          </Ul>
+
+          <H2>12.7 Previously Joined Toggle</H2>
+          <Ul>
+            <Li>Target: ghost button on Participant Join page</Li>
+            <Li>Action: toggles visibility of ClaimCodeInput section below the join form</Li>
+            <Li>Clicking again hides the section</Li>
           </Ul>
         </Section>
 
@@ -843,6 +916,8 @@ interface WeekendRow {
               ["GroupCalendar", "No aggregation", "All weekends in neutral muted color (no tier colors)"],
               ["My Availability", "No current participant", "Calendar still renders; no busy selections shown"],
               ["Claim Code Input", "Empty submission", "'Please enter your claim code'"],
+              ["BoardGate (Creator)", "Board not yet created", "'No board yet' card with link to Create page"],
+              ["BoardGate (Participant)", "Not joined or reclaimed", "'Join the board first' card with link to Join page"],
             ]}
           />
 
@@ -851,34 +926,45 @@ interface WeekendRow {
             <Li><strong>Cross-month weekends:</strong> {"A Friday in March with Sunday in April is handled -- date range formatting adapts (e.g. 'Mar 28 - Apr 1')"}</Li>
             <Li><strong>1-month window:</strong> Calendar starts and ends on the same month, nav buttons both disabled</Li>
             <Li><strong>12-month window:</strong> Up to ~52 weekends in the ranked list; no virtualization needed at this scale</Li>
-            <Li><strong>Board at exactly 5 participants:</strong> Join form replaced by Board Full + reclaim UI</Li>
+            <Li><strong>Board at participant cap:</strong> Join form replaced by Board Full + reclaim UI. Cap is now user-defined (1-5) not fixed at 5.</Li>
             <Li><strong>Duplicate display name:</strong> Blocked with inline error, user directed to reclaim</Li>
-            <Li><strong>All 5 participants busy on same weekend:</strong> Weekend renders as ALL_BUSY tier, grey color</Li>
+            <Li><strong>All participants busy on same weekend:</strong> Weekend renders as ALL_BUSY tier, grey color</Li>
             <Li><strong>All weekends free for everyone:</strong> All weekends render EVERYONE_FREE, green color, no expandable rows</Li>
+            <Li><strong>Returning participant:</strong> If a participant&apos;s ID is already in the board&apos;s participant list, they bypass the join gate automatically and go straight to My Availability or Group.</Li>
           </Ul>
         </Section>
 
         {/* ═══ SECTION 16 ═══ */}
         <Section id="s16">
           <H1>16. Prototype Scenario Matrix</H1>
-          <P>The prototype includes a floating Scenario Switcher (gear icon, bottom-right) that swaps all state between 4 predefined scenarios. This allows reviewers to see every edge case without manual setup.</P>
+          <P>The prototype includes a floating Scenario Switcher (gear icon, bottom-right) with two controls: a <strong>role toggle</strong> (Creator / Participant) and a <strong>scenario selector</strong> (4 predefined data states).</P>
+
+          <H2>16.1 Role Toggle</H2>
+          <Ul>
+            <Li>Segmented control: Creator | Participant</Li>
+            <Li>Changes the bottom navigation links and access gating behavior</Li>
+            <Li>Persisted in sessionStorage to survive page navigations</Li>
+          </Ul>
+
+          <H2>16.2 Scenario Definitions</H2>
           <DataTable
             headers={["Scenario", "Participants", "Availability", "Demonstrates"]}
             rows={[
-              ["Empty", "0 / 5", "None", "All empty states, no aggregation, neutral calendars"],
+              ["Empty", "0 / 5", "None", "All empty states, no aggregation, neutral calendars, board gate (creator: no board yet)"],
               ["Partial (3/5)", "3 / 5 joined (2 with avail, 1 pending)", "2 have busy weekends selected", "Mixed aggregation, pending counts, expandable rows, tier colors"],
               ["Full (5/5)", "5 / 5 joined, all ADDED_AVAILABILITY", "Various busy patterns", "All 4 tier types visible, full aggregation, ranked list"],
               ["Board Full", "5 / 5 (new user not joined)", "Same as Full", "Board Full join-blocked state, claim code reclaim flow"],
             ]}
           />
 
-          <H2>16.1 Mock Data Generation</H2>
+          <H2>16.3 Mock Data Generation</H2>
           <Ul>
-            <Li>{"Board: 'Summer Hangouts', 3-month window from current month, timezone from browser"}</Li>
-            <Li>{"Weekends: dynamically computed from the board's date range using date-fns"}</Li>
+            <Li>{"Board: 'Summer Hangouts' (default, overridden by user input on Create page), 3-month window, deterministic date range"}</Li>
+            <Li>{"Weekends: computed from the board's date range using date-fns"}</Li>
             <Li>Participant names: Alex (you), Jordan, Sam, Taylor, Casey</Li>
             <Li>Claim codes: drawn from fixed word list (mountain, sunset, ocean, etc.)</Li>
             <Li>Busy selections: deterministic indices into the weekend array for reproducible scenarios</Li>
+            <Li>All IDs, timestamps, and dates are static constants to prevent server/client hydration mismatches</Li>
           </Ul>
         </Section>
 

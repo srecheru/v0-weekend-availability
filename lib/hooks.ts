@@ -210,7 +210,7 @@ export function useCreateBoard() {
 
 // Helper hook to compute weekend fridays from board date range
 export function useWeekendFridays(board: Board | undefined) {
-  if (!board || !board.dateRangeStart || !board.dateRangeEnd) return [];
+  if (!board) return [];
   
   const start = parseISO(board.dateRangeStart);
   const end = parseISO(board.dateRangeEnd);

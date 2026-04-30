@@ -1,25 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useBoardContext } from "@/lib/board-context";
+import { useState } from "react";
+import { usePrototype } from "@/lib/prototype-context";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Check, Copy, ExternalLink, Link } from "lucide-react";
+import { Check, Copy, Link } from "lucide-react";
 
 export function ShareLinkCard() {
-  const { board } = useBoardContext();
+  const { board } = usePrototype();
   const [copied, setCopied] = useState(false);
-  const [origin, setOrigin] = useState("");
 
-  // Set origin only on client after mount to avoid hydration mismatch
-  useEffect(() => {
-    setOrigin(window.location.origin);
-  }, []);
-
-  if (!board) return null;
-
-  const relativePath = `/boards/${board.boardId}/participant-join?joinToken=${board.joinToken}`;
-  const shareUrl = origin ? `${origin}${relativePath}` : relativePath;
+  const shareUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/boards/${board.boardId}/participant-join?joinToken=${board.joinToken}`;
 
   const handleCopy = async () => {
     try {
@@ -54,17 +45,6 @@ export function ShareLinkCard() {
             ) : (
               <Copy className="size-4" />
             )}
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            asChild
-            className="shrink-0"
-            aria-label="Open in new tab"
-          >
-            <a href={shareUrl} target="_blank" rel="noopener noreferrer">
-              <ExternalLink className="size-4" />
-            </a>
           </Button>
         </div>
       </CardContent>

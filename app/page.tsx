@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useCreateBoard } from "@/lib/hooks";
+import { usePrototype } from "@/lib/prototype-context";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -14,17 +14,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CalendarDays, Loader2 } from "lucide-react";
+import { ScenarioSwitcher } from "@/components/wab/scenario-switcher";
+import { ScreenNav } from "@/components/wab/screen-nav";
+import { CalendarDays } from "lucide-react";
 
 export default function CreateBoardPage() {
   const router = useRouter();
-  const { createBoard, isCreating, error: createError } = useCreateBoard();
+  const { board, updateBoardName, markBoardCreated } = usePrototype();
   const [boardName, setBoardName] = useState("");
   const [duration, setDuration] = useState<string>("3");
   const [participants, setParticipants] = useState<string>("");
   const [error, setError] = useState("");
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
     if (!boardName.trim()) {
       setError("Board name is required");
@@ -35,16 +37,9 @@ export default function CreateBoardPage() {
       return;
     }
     setError("");
-
-    const board = await createBoard({
-      name: boardName.trim(),
-      durationMonths: parseInt(duration, 10),
-      participantCap: parseInt(participants, 10),
-    });
-
-    if (board) {
-      router.push(`/boards/${board.boardId}/creator-join`);
-    }
+    updateBoardName(boardName.trim());
+    markBoardCreated();
+    router.push(`/boards/${board.boardId}/creator-join`);
   };
 
   return (
@@ -78,17 +73,16 @@ export default function CreateBoardPage() {
                   value={boardName}
                   onChange={(e) => setBoardName(e.target.value)}
                   placeholder="e.g. Summer Hangouts"
-                  aria-invalid={!!(error || createError)}
-                  disabled={isCreating}
+                  aria-invalid={!!error}
                 />
-                {(error || createError) && (
-                  <p className="text-xs text-destructive">{error || createError}</p>
+                {error && (
+                  <p className="text-xs text-destructive">{error}</p>
                 )}
               </div>
 
               <div className="flex flex-col gap-2">
                 <Label htmlFor="participants">Participants</Label>
-                <Select value={participants} onValueChange={setParticipants} disabled={isCreating}>
+                <Select value={participants} onValueChange={setParticipants}>
                   <SelectTrigger id="participants" className="w-full">
                     <SelectValue placeholder="Select number" />
                   </SelectTrigger>
@@ -107,7 +101,7 @@ export default function CreateBoardPage() {
 
               <div className="flex flex-col gap-2">
                 <Label htmlFor="duration">Planning Window</Label>
-                <Select value={duration} onValueChange={setDuration} disabled={isCreating}>
+                <Select value={duration} onValueChange={setDuration}>
                   <SelectTrigger id="duration" className="w-full">
                     <SelectValue placeholder="Select duration" />
                   </SelectTrigger>
@@ -123,20 +117,16 @@ export default function CreateBoardPage() {
                 </p>
               </div>
 
-              <Button type="submit" className="w-full" size="lg" disabled={isCreating}>
-                {isCreating ? (
-                  <>
-                    <Loader2 className="size-4 animate-spin" />
-                    Creating...
-                  </>
-                ) : (
-                  "Create Board"
-                )}
+              <Button type="submit" className="w-full" size="lg">
+                Create Board
               </Button>
             </form>
           </CardContent>
         </Card>
       </div>
+
+      <ScreenNav />
+      <ScenarioSwitcher />
     </main>
   );
 }
