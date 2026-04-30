@@ -8,7 +8,7 @@ import { WeekendListPersonal } from "@/components/wab/weekend-list-personal";
 import { SaveIndicator } from "@/components/wab/save-indicator";
 import { AvailabilityTabs } from "@/components/wab/screen-nav";
 import { ScenarioSwitcher } from "@/components/wab/scenario-switcher";
-import { BoardGate } from "@/components/wab/board-gate";
+import { BoardGateMyAvailability } from "@/components/wab/board-gate";
 import { ScreenNav } from "@/components/wab/screen-nav";
 
 export default function MyAvailabilityPage() {
@@ -23,7 +23,7 @@ export default function MyAvailabilityPage() {
   const busyFridays = currentParticipant?.busyWeekendFridays ?? [];
 
   return (
-    <BoardGate>
+    <BoardGateMyAvailability>
     <main className="min-h-screen pb-20">
       <div className="mx-auto max-w-md px-4 py-6 flex flex-col gap-5">
         <BoardHeader />
@@ -67,6 +67,6 @@ export default function MyAvailabilityPage() {
       <ScreenNav />
       {viewRole === "creator" && <ScenarioSwitcher />}
     </main>
-    </BoardGate>
+    </BoardGateMyAvailability>
   );
 }

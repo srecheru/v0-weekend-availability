@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { CalendarCheck, Users, Home, UserPlus, Share2 } from "lucide-react";
 
 export function ScreenNav() {
-  const { board, viewRole, hydrated } = usePrototype();
+  const { board, viewRole, hydrated, participantJoined } = usePrototype();
   const pathname = usePathname();
   const boardBase = `/boards/${board.boardId}`;
 
@@ -37,23 +37,39 @@ export function ScreenNav() {
     },
   ];
 
-  const participantLinks = [
-    {
-      href: `${boardBase}/participant-join`,
-      label: "Join",
-      icon: UserPlus,
-    },
-    {
-      href: `${boardBase}/my-availability`,
-      label: "My Avail.",
-      icon: CalendarCheck,
-    },
-    {
-      href: `${boardBase}/group-availability`,
-      label: "Group",
-      icon: Users,
-    },
-  ];
+  // Participant nav changes based on join state:
+  // - hasn't-joined: Join + Group only (My Avail. hidden)
+  // - joined: Join + My Avail. + Group
+  const participantLinks = participantJoined
+    ? [
+        {
+          href: `${boardBase}/participant-join`,
+          label: "Board",
+          icon: UserPlus,
+        },
+        {
+          href: `${boardBase}/my-availability`,
+          label: "My Avail.",
+          icon: CalendarCheck,
+        },
+        {
+          href: `${boardBase}/group-availability`,
+          label: "Group",
+          icon: Users,
+        },
+      ]
+    : [
+        {
+          href: `${boardBase}/participant-join`,
+          label: "Join",
+          icon: UserPlus,
+        },
+        {
+          href: `${boardBase}/group-availability`,
+          label: "Group",
+          icon: Users,
+        },
+      ];
 
   const links = viewRole === "creator" ? creatorLinks : participantLinks;
 
@@ -90,23 +106,34 @@ export function ScreenNav() {
 }
 
 // Tab nav for switching between My Availability and Group View within the board
+// For participants who haven't joined, only show Group View tab
 export function AvailabilityTabs({ activeTab }: { activeTab: "my" | "group" }) {
-  const { board } = usePrototype();
+  const { board, viewRole, participantJoined } = usePrototype();
   const boardBase = `/boards/${board.boardId}`;
+
+  // For participants who haven't joined, don't show My Availability tab
+  const showMyAvailTab = viewRole === "creator" || participantJoined;
+
+  if (!showMyAvailTab && activeTab === "group") {
+    // Just show a simple header instead of tabs when there's only one option
+    return null;
+  }
 
   return (
     <div className="flex rounded-lg bg-muted p-1 gap-1">
-      <Link
-        href={`${boardBase}/my-availability`}
-        className={cn(
-          "flex-1 text-center text-sm font-medium py-1.5 rounded-md transition-colors",
-          activeTab === "my"
-            ? "bg-card text-foreground shadow-sm"
-            : "text-muted-foreground hover:text-foreground"
-        )}
-      >
-        My Availability
-      </Link>
+      {showMyAvailTab && (
+        <Link
+          href={`${boardBase}/my-availability`}
+          className={cn(
+            "flex-1 text-center text-sm font-medium py-1.5 rounded-md transition-colors",
+            activeTab === "my"
+              ? "bg-card text-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          My Availability
+        </Link>
+      )}
       <Link
         href={`${boardBase}/group-availability`}
         className={cn(

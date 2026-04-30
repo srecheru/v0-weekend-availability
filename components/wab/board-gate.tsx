@@ -10,9 +10,43 @@ import { ScenarioSwitcher } from "@/components/wab/scenario-switcher";
 
 /**
  * Gate for pages that require board creation (creator) or board join (participant).
- * Shows a friendly prompt to go create / join first.
+ * 
+ * Creator flow: Gates all board pages until a board is created.
+ * 
+ * Participant flow (for My Availability only):
+ * - hasn't-joined: Show "Join the board first" prompt
+ * - joined-no-availability: Allow through
+ * - joined-availability-added: Allow through
+ * 
+ * Note: Group view is NOT gated for participants - they can always see it.
+ * Use <BoardGateMyAvailability> for My Availability page specifically.
  */
 export function BoardGate({ children }: { children: React.ReactNode }) {
+  const { boardCreated, viewRole } = usePrototype();
+  const showScenarioSwitcher = viewRole === "creator";
+
+  // Creator flow: must have created a board
+  if (viewRole === "creator" && !boardCreated) {
+    return (
+      <GateShell
+        icon={<CalendarPlus className="size-6 text-muted-foreground" />}
+        title="No board yet"
+        description="Create a group board first, then you can share it, add your availability, and see the group view."
+        actionLabel="Create a Group Board"
+        actionHref="/"
+        showScenarioSwitcher={showScenarioSwitcher}
+      />
+    );
+  }
+
+  return <>{children}</>;
+}
+
+/**
+ * Specific gate for My Availability page in participant flow.
+ * Requires participant to have joined before accessing.
+ */
+export function BoardGateMyAvailability({ children }: { children: React.ReactNode }) {
   const { boardCreated, participantJoined, viewRole, board } = usePrototype();
   const showScenarioSwitcher = viewRole === "creator";
 
@@ -30,13 +64,13 @@ export function BoardGate({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Participant flow: must have joined (or reclaimed) the board
+  // Participant flow: must have joined to access My Availability
   if (viewRole === "participant" && !participantJoined) {
     return (
       <GateShell
         icon={<UserPlus className="size-6 text-muted-foreground" />}
         title="Join the board first"
-        description="You need to join this board or reclaim your spot with a claim code before you can view availability."
+        description="You need to join this board or reclaim your spot with a claim code before you can add your availability."
         actionLabel="Go to Join Page"
         actionHref={`/boards/${board.boardId}/participant-join`}
         showScenarioSwitcher={false}
