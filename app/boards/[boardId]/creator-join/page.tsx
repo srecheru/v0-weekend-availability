@@ -25,7 +25,7 @@ import { useBoard } from "@/lib/wab-hooks";
 export default function CreatorJoinPage() {
   const params = useParams<{ boardId: string }>();
   const boardId = params.boardId;
-  const { board, participants, currentParticipant, mutate } = useBoard(boardId);
+  const { board, participants, currentParticipant } = useBoard(boardId);
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [isJoining, setIsJoining] = useState(false);
@@ -53,9 +53,8 @@ export default function CreatorJoinPage() {
           setIsJoining(false);
           return;
         }
-        // Refresh board data to get the new currentParticipant
-        await mutate();
-        setIsJoining(false);
+        // Full page reload so the browser sends the new session cookie
+        window.location.reload();
       } catch (err) {
         console.error(err);
         setError("Failed to join board");
