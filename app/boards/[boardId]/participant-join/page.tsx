@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { usePrototype } from "@/lib/prototype-context";
 import { computeAggregation } from "@/lib/weekend-utils";
@@ -18,15 +18,10 @@ import { AlertCircle } from "lucide-react";
 
 export default function ParticipantJoinPage() {
   const router = useRouter();
-  const { board, participants, weekendFridays, isBoardFull, addParticipant, markParticipantJoined, setViewRole, viewRole, participantJoined } =
+  const { board, participants, weekendFridays, isBoardFull, addParticipant, markParticipantJoined, participantJoined } =
     usePrototype();
 
-  // Auto-switch to participant view when entering via this join link
-  useEffect(() => {
-    if (viewRole !== "participant") {
-      setViewRole("participant");
-    }
-  }, [viewRole, setViewRole]);
+
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [reclaimError, setReclaimError] = useState("");
