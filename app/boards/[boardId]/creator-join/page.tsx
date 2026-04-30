@@ -2,7 +2,9 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { usePrototype } from "@/lib/prototype-context";
+import { useParams } from "next/navigation";
+import { useBoardContext } from "@/lib/board-context";
+import { useJoinBoard } from "@/lib/hooks";
 import { computeAggregation } from "@/lib/weekend-utils";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,14 +14,13 @@ import { BoardHeader } from "@/components/wab/board-header";
 import { ShareLinkCard } from "@/components/wab/share-link-card";
 import { TierSummaryBar } from "@/components/wab/tier-summary-bar";
 import { ParticipantList } from "@/components/wab/participant-list";
-import { ScenarioSwitcher } from "@/components/wab/scenario-switcher";
-import { ScreenNav } from "@/components/wab/screen-nav";
-import { BoardGate } from "@/components/wab/board-gate";
-import { CalendarPlus, KeyRound } from "lucide-react";
+import { CalendarPlus, KeyRound, Loader2 } from "lucide-react";
 
 export default function CreatorJoinPage() {
-  const { board, participants, weekendFridays, currentParticipant, addParticipant, markParticipantJoined } =
-    usePrototype();
+  const params = useParams();
+  const boardId = params.boardId as string;
+  const { board, participants, weekendFridays, currentParticipant, isLoading, refreshSession, refreshParticipants } = useBoardContext();
+  const { join, isJoining, error: joinError } = useJoinBoard(boardId);
   
   const [name, setName] = useState("");
   const [error, setError] = useState("");
@@ -29,12 +30,12 @@ export default function CreatorJoinPage() {
     [participants, weekendFridays]
   );
 
-  const boardBase = `/boards/${board.boardId}`;
+  const boardBase = `/boards/${boardId}`;
   
   // Creator hasn't joined the board yet
   const creatorNeedsToJoin = !currentParticipant;
 
-  const handleCreatorJoin = (e: React.FormEvent) => {
+  const handleCreatorJoin = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = name.trim();
     if (!trimmed) {
@@ -42,12 +43,23 @@ export default function CreatorJoinPage() {
       return;
     }
     setError("");
-    addParticipant(trimmed);
-    markParticipantJoined();
+    
+    const result = await join(trimmed);
+    if (result) {
+      refreshSession();
+      refreshParticipants();
+    }
   };
 
+  if (isLoading || !board) {
+    return (
+      <main className="min-h-screen flex items-center justify-center">
+        <Loader2 className="size-8 animate-spin text-muted-foreground" />
+      </main>
+    );
+  }
+
   return (
-    <BoardGate>
     <main className="min-h-screen pb-20">
       <div className="mx-auto max-w-md px-4 py-6 flex flex-col gap-5">
         <BoardHeader />
@@ -71,12 +83,20 @@ export default function CreatorJoinPage() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="e.g. Alex"
-                    aria-invalid={!!error}
+                    aria-invalid={!!(error || joinError)}
+                    disabled={isJoining}
                   />
-                  {error && <p className="text-xs text-destructive">{error}</p>}
+                  {(error || joinError) && <p className="text-xs text-destructive">{error || joinError}</p>}
                 </div>
-                <Button type="submit" className="w-full">
-                  Join Board
+                <Button type="submit" className="w-full" disabled={isJoining}>
+                  {isJoining ? (
+                    <>
+                      <Loader2 className="size-4 animate-spin" />
+                      Joining...
+                    </>
+                  ) : (
+                    "Join Board"
+                  )}
                 </Button>
               </form>
             </CardContent>
@@ -120,10 +140,6 @@ export default function CreatorJoinPage() {
           </Button>
         )}
       </div>
-
-      <ScreenNav />
-      <ScenarioSwitcher />
     </main>
-    </BoardGate>
   );
 }

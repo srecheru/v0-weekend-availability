@@ -7,9 +7,10 @@ import { KeyRound } from "lucide-react";
 
 interface ClaimCodeInputProps {
   onReclaim: (code: string) => void;
+  disabled?: boolean;
 }
 
-export function ClaimCodeInput({ onReclaim }: ClaimCodeInputProps) {
+export function ClaimCodeInput({ onReclaim, disabled }: ClaimCodeInputProps) {
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
 
@@ -39,8 +40,9 @@ export function ClaimCodeInput({ onReclaim }: ClaimCodeInputProps) {
           placeholder="e.g. mountain"
           className="flex-1"
           aria-label="Claim code"
+          disabled={disabled}
         />
-        <Button type="submit" variant="outline">
+        <Button type="submit" variant="outline" disabled={disabled}>
           Reclaim
         </Button>
       </div>

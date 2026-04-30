@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
-import { usePrototype } from "@/lib/prototype-context";
+import { useRouter, useParams } from "next/navigation";
+import { useBoardContext } from "@/lib/board-context";
+import { useJoinBoard, useReclaimSpot } from "@/lib/hooks";
 import { computeAggregation } from "@/lib/weekend-utils";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,19 +13,19 @@ import { BoardHeader } from "@/components/wab/board-header";
 import { TierSummaryBar } from "@/components/wab/tier-summary-bar";
 import { ParticipantList } from "@/components/wab/participant-list";
 import { ClaimCodeInput } from "@/components/wab/claim-code-input";
-import { ScreenNav } from "@/components/wab/screen-nav";
-import { ScenarioSwitcher } from "@/components/wab/scenario-switcher";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
 
 export default function ParticipantJoinPage() {
   const router = useRouter();
-  const { board, participants, weekendFridays, isBoardFull, addParticipant, markParticipantJoined, participantJoined } =
-    usePrototype();
-
+  const params = useParams();
+  const boardId = params.boardId as string;
+  const { board, participants, weekendFridays, isBoardFull, participantJoined, isLoading, refreshSession, refreshParticipants } = useBoardContext();
+  const { join, isJoining, error: joinError } = useJoinBoard(boardId);
+  const { reclaim, isReclaiming, error: reclaimError } = useReclaimSpot(boardId);
 
   const [name, setName] = useState("");
   const [error, setError] = useState("");
-  const [reclaimError, setReclaimError] = useState("");
+  const [localReclaimError, setLocalReclaimError] = useState("");
   const [showReclaim, setShowReclaim] = useState(false);
 
   const { summary, hasAggregation, pendingCount } = useMemo(
@@ -32,41 +33,46 @@ export default function ParticipantJoinPage() {
     [participants, weekendFridays]
   );
 
-  const handleJoin = (e: React.FormEvent) => {
+  const handleJoin = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = name.trim();
     if (!trimmed) {
       setError("Display name is required");
       return;
     }
-    if (participants.some((p) => p.displayName.toLowerCase() === trimmed.toLowerCase())) {
-      setError("That name is already taken. Use your claim code to reclaim.");
-      return;
-    }
     setError("");
-    addParticipant(trimmed);
-    markParticipantJoined();
-    router.push(`/boards/${board.boardId}/my-availability`);
+    
+    const result = await join(trimmed);
+    if (result) {
+      refreshSession();
+      refreshParticipants();
+      router.push(`/boards/${boardId}/my-availability`);
+    }
   };
 
-  const handleReclaim = (code: string) => {
-    const found = participants.find(
-      (p) => p.claimCode.toLowerCase() === code.toLowerCase()
-    );
-    if (!found) {
-      setReclaimError("Invalid claim code. Please try again.");
-      return;
-    }
-    setReclaimError("");
-    markParticipantJoined();
-    if (found.state === "ADDED_AVAILABILITY") {
-      router.push(`/boards/${board.boardId}/group-availability`);
+  const handleReclaim = async (code: string) => {
+    setLocalReclaimError("");
+    const result = await reclaim(code);
+    if (result) {
+      refreshSession();
+      refreshParticipants();
+      if (result.state === "ADDED_AVAILABILITY") {
+        router.push(`/boards/${boardId}/group-availability`);
+      } else {
+        router.push(`/boards/${boardId}/my-availability`);
+      }
     } else {
-      router.push(`/boards/${board.boardId}/my-availability`);
+      setLocalReclaimError("Invalid claim code. Please try again.");
     }
   };
 
-  const boardBase = `/boards/${board.boardId}`;
+  if (isLoading || !board) {
+    return (
+      <main className="min-h-screen flex items-center justify-center">
+        <Loader2 className="size-8 animate-spin text-muted-foreground" />
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen pb-20">
@@ -101,9 +107,9 @@ export default function ParticipantJoinPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <ClaimCodeInput onReclaim={handleReclaim} />
-                {reclaimError && (
-                  <p className="text-xs text-destructive mt-2">{reclaimError}</p>
+                <ClaimCodeInput onReclaim={handleReclaim} disabled={isReclaiming} />
+                {(localReclaimError || reclaimError) && (
+                  <p className="text-xs text-destructive mt-2">{localReclaimError || reclaimError}</p>
                 )}
               </CardContent>
             </Card>
@@ -125,12 +131,20 @@ export default function ParticipantJoinPage() {
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       placeholder="e.g. Alex"
-                      aria-invalid={!!error}
+                      aria-invalid={!!(error || joinError)}
+                      disabled={isJoining}
                     />
-                    {error && <p className="text-xs text-destructive">{error}</p>}
+                    {(error || joinError) && <p className="text-xs text-destructive">{error || joinError}</p>}
                   </div>
-                  <Button type="submit" className="w-full">
-                    Join Board
+                  <Button type="submit" className="w-full" disabled={isJoining}>
+                    {isJoining ? (
+                      <>
+                        <Loader2 className="size-4 animate-spin" />
+                        Joining...
+                      </>
+                    ) : (
+                      "Join Board"
+                    )}
                   </Button>
                 </form>
 
@@ -148,9 +162,9 @@ export default function ParticipantJoinPage() {
                       <p className="text-xs text-muted-foreground">
                         Enter the claim code you were given when you first joined.
                       </p>
-                      <ClaimCodeInput onReclaim={handleReclaim} />
-                      {reclaimError && (
-                        <p className="text-xs text-destructive">{reclaimError}</p>
+                      <ClaimCodeInput onReclaim={handleReclaim} disabled={isReclaiming} />
+                      {(localReclaimError || reclaimError) && (
+                        <p className="text-xs text-destructive">{localReclaimError || reclaimError}</p>
                       )}
                     </div>
                   )}
@@ -160,9 +174,6 @@ export default function ParticipantJoinPage() {
           )
         )}
       </div>
-
-      <ScreenNav />
-      <ScenarioSwitcher />
     </main>
   );
 }

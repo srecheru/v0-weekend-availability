@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { usePrototype } from "@/lib/prototype-context";
+import { useBoardContext } from "@/lib/board-context";
 import { computeAggregation } from "@/lib/weekend-utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BoardHeader } from "@/components/wab/board-header";
@@ -9,20 +9,25 @@ import { GroupCalendar } from "@/components/wab/weekend-calendar";
 import { TierSummaryBar } from "@/components/wab/tier-summary-bar";
 import { WeekendListGroup } from "@/components/wab/weekend-list-group";
 import { AvailabilityTabs } from "@/components/wab/screen-nav";
-import { ScenarioSwitcher } from "@/components/wab/scenario-switcher";
-import { BoardGate } from "@/components/wab/board-gate";
-import { ScreenNav } from "@/components/wab/screen-nav";
+import { Loader2 } from "lucide-react";
 
 export default function GroupAvailabilityPage() {
-  const { board, participants, weekendFridays, viewRole } = usePrototype();
+  const { board, participants, weekendFridays, isLoading } = useBoardContext();
 
   const { weekends, summary, hasAggregation, pendingCount } = useMemo(
     () => computeAggregation(participants, weekendFridays),
     [participants, weekendFridays]
   );
 
+  if (isLoading || !board) {
+    return (
+      <main className="min-h-screen flex items-center justify-center">
+        <Loader2 className="size-8 animate-spin text-muted-foreground" />
+      </main>
+    );
+  }
+
   return (
-    <BoardGate>
     <main className="min-h-screen pb-20">
       <div className="mx-auto max-w-md px-4 py-6 flex flex-col gap-5">
         <BoardHeader />
@@ -61,10 +66,6 @@ export default function GroupAvailabilityPage() {
           <WeekendListGroup weekends={weekends} hasAggregation={hasAggregation} />
         </div>
       </div>
-
-      <ScreenNav />
-      <ScenarioSwitcher />
     </main>
-    </BoardGate>
   );
 }

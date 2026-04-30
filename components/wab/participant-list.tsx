@@ -1,10 +1,12 @@
 "use client";
 
-import { usePrototype } from "@/lib/prototype-context";
+import { useBoardContext } from "@/lib/board-context";
 import { Users } from "lucide-react";
 
 export function ParticipantList() {
-  const { participants, board } = usePrototype();
+  const { participants, board } = useBoardContext();
+
+  if (!board) return null;
 
   if (participants.length === 0) {
     return (

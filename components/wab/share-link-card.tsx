@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { usePrototype } from "@/lib/prototype-context";
+import { useBoardContext } from "@/lib/board-context";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Check, Copy, Link } from "lucide-react";
 
 export function ShareLinkCard() {
-  const { board } = usePrototype();
+  const { board } = useBoardContext();
   const [copied, setCopied] = useState(false);
   const [origin, setOrigin] = useState("");
 
@@ -15,6 +15,8 @@ export function ShareLinkCard() {
   useEffect(() => {
     setOrigin(window.location.origin);
   }, []);
+
+  if (!board) return null;
 
   const relativePath = `/boards/${board.boardId}/participant-join?joinToken=${board.joinToken}`;
   const shareUrl = origin ? `${origin}${relativePath}` : relativePath;
