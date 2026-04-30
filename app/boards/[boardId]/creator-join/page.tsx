@@ -1,11 +1,13 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { usePrototype } from "@/lib/prototype-context";
 import { computeAggregation } from "@/lib/weekend-utils";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { BoardHeader } from "@/components/wab/board-header";
 import { ShareLinkCard } from "@/components/wab/share-link-card";
 import { TierSummaryBar } from "@/components/wab/tier-summary-bar";
@@ -16,8 +18,11 @@ import { BoardGate } from "@/components/wab/board-gate";
 import { CalendarPlus, KeyRound } from "lucide-react";
 
 export default function CreatorJoinPage() {
-  const { board, participants, weekendFridays, currentParticipant } =
+  const { board, participants, weekendFridays, currentParticipant, addParticipant, markParticipantJoined } =
     usePrototype();
+  
+  const [name, setName] = useState("");
+  const [error, setError] = useState("");
 
   const { summary, hasAggregation, pendingCount } = useMemo(
     () => computeAggregation(participants, weekendFridays),
@@ -25,6 +30,21 @@ export default function CreatorJoinPage() {
   );
 
   const boardBase = `/boards/${board.boardId}`;
+  
+  // Creator hasn't joined the board yet
+  const creatorNeedsToJoin = !currentParticipant;
+
+  const handleCreatorJoin = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = name.trim();
+    if (!trimmed) {
+      setError("Please enter your name");
+      return;
+    }
+    setError("");
+    addParticipant(trimmed);
+    markParticipantJoined();
+  };
 
   return (
     <BoardGate>
@@ -33,6 +53,35 @@ export default function CreatorJoinPage() {
         <BoardHeader />
 
         <ShareLinkCard />
+
+        {creatorNeedsToJoin && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Join Your Board</CardTitle>
+              <CardDescription>
+                Enter your name to join the board you created. You{"'"}ll then be able to add your availability.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleCreatorJoin} className="flex flex-col gap-4">
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="creator-name">Your Name</Label>
+                  <Input
+                    id="creator-name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="e.g. Alex"
+                    aria-invalid={!!error}
+                  />
+                  {error && <p className="text-xs text-destructive">{error}</p>}
+                </div>
+                <Button type="submit" className="w-full">
+                  Join Board
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        )}
 
         <Card>
           <CardHeader>
@@ -62,12 +111,14 @@ export default function CreatorJoinPage() {
           </Card>
         )}
 
-        <Button asChild size="lg" className="w-full">
-          <Link href={`${boardBase}/my-availability`}>
-            <CalendarPlus className="size-4" />
-            Add My Availability
-          </Link>
-        </Button>
+        {currentParticipant && (
+          <Button asChild size="lg" className="w-full">
+            <Link href={`${boardBase}/my-availability`}>
+              <CalendarPlus className="size-4" />
+              Add My Availability
+            </Link>
+          </Button>
+        )}
       </div>
 
       <ScreenNav />
