@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import {
@@ -9,21 +9,60 @@ import {
   fridayToIso,
 } from "@/lib/weekend-utils";
 import { parseISO } from "date-fns";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { BoardHeader } from "@/components/wab/board-header";
 import { ShareLinkCard } from "@/components/wab/share-link-card";
 import { TierSummaryBar } from "@/components/wab/tier-summary-bar";
 import { ParticipantList } from "@/components/wab/participant-list";
 import { ScreenNav } from "@/components/wab/screen-nav";
 import { BoardGate } from "@/components/wab/board-gate";
-import { CalendarPlus, KeyRound } from "lucide-react";
+import { CalendarPlus, KeyRound, UserPlus } from "lucide-react";
 import { useBoard } from "@/lib/wab-hooks";
 
 export default function CreatorJoinPage() {
   const params = useParams<{ boardId: string }>();
   const boardId = params.boardId;
-  const { board, participants, currentParticipant } = useBoard(boardId);
+  const { board, participants, currentParticipant, mutate } = useBoard(boardId);
+  const [name, setName] = useState("");
+  const [error, setError] = useState("");
+  const [isJoining, setIsJoining] = useState(false);
+
+  const handleCreatorJoin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isJoining) return;
+    const trimmed = name.trim();
+    if (!trimmed) {
+      setError("Please enter your name");
+      return;
+    }
+    setError("");
+    setIsJoining(true);
+    void (async () => {
+      try {
+        const res = await fetch(`/api/boards/${boardId}/join`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ displayName: trimmed }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          setError(data?.error ?? "Failed to join board");
+          setIsJoining(false);
+          return;
+        }
+        // Refresh board data to get the new currentParticipant
+        await mutate();
+        setIsJoining(false);
+      } catch (err) {
+        console.error(err);
+        setError("Failed to join board");
+        setIsJoining(false);
+      }
+    })();
+  };
 
   const weekendFridays = useMemo(() => {
     if (!board) return [];
@@ -54,6 +93,38 @@ export default function CreatorJoinPage() {
         <BoardHeader board={board} />
 
         <ShareLinkCard boardId={board.boardId} joinToken={board.joinToken} />
+
+        {!currentParticipant && (
+          <Card className="border-primary/50 bg-primary/5">
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <UserPlus className="size-4" />
+                Join Your Board
+              </CardTitle>
+              <CardDescription>
+                Add yourself as a participant to start adding your availability.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleCreatorJoin} className="flex flex-col gap-3">
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="creator-name">Your Name</Label>
+                  <Input
+                    id="creator-name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="e.g. Alex"
+                    disabled={isJoining}
+                  />
+                  {error && <p className="text-xs text-destructive">{error}</p>}
+                </div>
+                <Button type="submit" className="w-full" disabled={isJoining}>
+                  {isJoining ? "Joining..." : "Join Board"}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        )}
 
         <Card>
           <CardHeader>
@@ -86,12 +157,14 @@ export default function CreatorJoinPage() {
           </Card>
         )}
 
-        <Button asChild size="lg" className="w-full">
-          <Link href={`${boardBase}/my-availability`}>
-            <CalendarPlus className="size-4" />
-            Add My Availability
-          </Link>
-        </Button>
+        {currentParticipant && (
+          <Button asChild size="lg" className="w-full">
+            <Link href={`${boardBase}/my-availability`}>
+              <CalendarPlus className="size-4" />
+              Add My Availability
+            </Link>
+          </Button>
+        )}
       </div>
 
       <ScreenNav boardId={board.boardId} viewRole="creator" />
