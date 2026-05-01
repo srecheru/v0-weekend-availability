@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import useSWR from "swr";
 import type {
   Board,
@@ -7,6 +8,36 @@ import type {
   WeekendRow,
   AggregationSummary,
 } from "@/lib/weekend-utils";
+
+const CREATOR_BOARDS_KEY = "wab_created_boards";
+
+export function markAsCreator(boardId: string): void {
+  try {
+    const stored = localStorage.getItem(CREATOR_BOARDS_KEY);
+    const boards: string[] = stored ? (JSON.parse(stored) as string[]) : [];
+    if (!boards.includes(boardId)) {
+      boards.push(boardId);
+      localStorage.setItem(CREATOR_BOARDS_KEY, JSON.stringify(boards));
+    }
+  } catch {
+    // ignore
+  }
+}
+
+export function useIsCreator(boardId: string | undefined): boolean {
+  const [isCreator, setIsCreator] = useState(false);
+  useEffect(() => {
+    if (!boardId) return;
+    try {
+      const stored = localStorage.getItem(CREATOR_BOARDS_KEY);
+      const boards: string[] = stored ? (JSON.parse(stored) as string[]) : [];
+      setIsCreator(boards.includes(boardId));
+    } catch {
+      setIsCreator(false);
+    }
+  }, [boardId]);
+  return isCreator;
+}
 
 const jsonFetcher = async <T>(url: string): Promise<T> => {
   const res = await fetch(url, { credentials: "include" });

@@ -9,7 +9,7 @@ import { WeekendListGroup } from "@/components/wab/weekend-list-group";
 import { AvailabilityTabs } from "@/components/wab/screen-nav";
 import { BoardGate } from "@/components/wab/board-gate";
 import { ScreenNav } from "@/components/wab/screen-nav";
-import { useBoard, useAggregation } from "@/lib/wab-hooks";
+import { useBoard, useAggregation, useIsCreator } from "@/lib/wab-hooks";
 
 export default function GroupAvailabilityPage() {
   const params = useParams<{ boardId: string }>();
@@ -17,13 +17,18 @@ export default function GroupAvailabilityPage() {
   const router = useRouter();
   const { board, currentParticipant, isLoading } = useBoard(boardId);
   const { data } = useAggregation(boardId);
+  const isCreator = useIsCreator(boardId);
 
   if (!board || isLoading) {
     return null;
   }
 
   if (!currentParticipant) {
-    router.replace(`/boards/${board.boardId}/participant-join`);
+    router.replace(
+      isCreator
+        ? `/boards/${board.boardId}/creator-join`
+        : `/boards/${board.boardId}/participant-join`
+    );
     return null;
   }
 
@@ -75,7 +80,7 @@ export default function GroupAvailabilityPage() {
         </div>
       </div>
 
-      <ScreenNav boardId={board.boardId} viewRole="participant" />
+      <ScreenNav boardId={board.boardId} viewRole={isCreator ? "creator" : "participant"} />
     </main>
     </BoardGate>
   );

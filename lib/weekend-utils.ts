@@ -241,17 +241,17 @@ export const TIER_CONFIG: Record<
   EVERYONE_FREE: {
     label: "Everyone Free",
     className: "bg-tier-everyone-free text-tier-everyone-free-foreground",
-    calendarClassName: "bg-tier-everyone-free/20 text-tier-everyone-free-foreground",
+    calendarClassName: "bg-tier-everyone-free/50 text-tier-everyone-free-foreground",
   },
   MAJORITY_FREE: {
     label: "Majority Free",
     className: "bg-tier-majority-free text-tier-majority-free-foreground",
-    calendarClassName: "bg-tier-majority-free/20 text-tier-majority-free-foreground",
+    calendarClassName: "bg-tier-majority-free/35 text-tier-majority-free-foreground",
   },
   MIXED_NOT_MAJORITY: {
     label: "Mixed",
     className: "bg-tier-mixed text-tier-mixed-foreground",
-    calendarClassName: "bg-tier-mixed/20 text-tier-mixed-foreground",
+    calendarClassName: "bg-tier-mixed/35 text-tier-mixed-foreground",
   },
   ALL_BUSY: {
     label: "All Busy",

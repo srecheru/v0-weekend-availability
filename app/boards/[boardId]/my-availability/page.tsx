@@ -12,13 +12,14 @@ import { SaveIndicator } from "@/components/wab/save-indicator";
 import { AvailabilityTabs } from "@/components/wab/screen-nav";
 import { BoardGate } from "@/components/wab/board-gate";
 import { ScreenNav } from "@/components/wab/screen-nav";
-import { useBoard } from "@/lib/wab-hooks";
+import { useBoard, useIsCreator } from "@/lib/wab-hooks";
 
 export default function MyAvailabilityPage() {
   const params = useParams<{ boardId: string }>();
   const boardId = params.boardId;
   const router = useRouter();
   const { board, currentParticipant, isLoading } = useBoard(boardId);
+  const isCreator = useIsCreator(boardId);
   const [busyFridays, setBusyFridays] = useState<string[]>([]);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">(
     "idle"
@@ -43,9 +44,13 @@ export default function MyAvailabilityPage() {
   useEffect(() => {
     if (isLoading || !board) return;
     if (!currentParticipant) {
-      router.replace(`/boards/${board.boardId}/participant-join`);
+      router.replace(
+        isCreator
+          ? `/boards/${board.boardId}/creator-join`
+          : `/boards/${board.boardId}/participant-join`
+      );
     }
-  }, [board, currentParticipant, isLoading, router]);
+  }, [board, currentParticipant, isCreator, isLoading, router]);
 
   const handleToggleWeekend = useCallback((fridayIso: string) => {
     setBusyFridays((prev) => {
@@ -124,7 +129,7 @@ export default function MyAvailabilityPage() {
         )}
       </div>
 
-      <ScreenNav boardId={board.boardId} viewRole="participant" />
+      <ScreenNav boardId={board.boardId} viewRole={isCreator ? "creator" : "participant"} />
     </main>
     </BoardGate>
   );

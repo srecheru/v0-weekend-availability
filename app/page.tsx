@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { markAsCreator } from "@/lib/wab-hooks";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -63,6 +64,7 @@ export default function CreateBoardPage() {
           return;
         }
 
+        markAsCreator(boardId);
         router.push(`/boards/${boardId}/creator-join`);
       } catch (err) {
         console.error(err);
