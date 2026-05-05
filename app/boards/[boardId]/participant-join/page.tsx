@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { useParams } from "next/navigation";
+import { useState, useMemo, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   computeAggregation,
@@ -18,13 +18,16 @@ import { TierSummaryBar } from "@/components/wab/tier-summary-bar";
 import { ParticipantList } from "@/components/wab/participant-list";
 import { ClaimCodeInput } from "@/components/wab/claim-code-input";
 import { ScreenNav } from "@/components/wab/screen-nav";
+import { ShareLinkCard } from "@/components/wab/share-link-card";
 import { AlertCircle, CalendarPlus, KeyRound } from "lucide-react";
-import { useBoard } from "@/lib/wab-hooks";
+import { useBoard, useIsCreator } from "@/lib/wab-hooks";
 
 export default function ParticipantJoinPage() {
+  const router = useRouter();
   const params = useParams<{ boardId: string }>();
   const boardId = params.boardId;
   const { board, participants, currentParticipant } = useBoard(boardId);
+  const isCreator = useIsCreator(boardId);
   const isBoardFull =
     (participants?.length ?? 0) >= (board?.participantCap ?? 0);
   const [name, setName] = useState("");
@@ -33,7 +36,11 @@ export default function ParticipantJoinPage() {
   const [showReclaim, setShowReclaim] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
 
-  // Nothing to do here — if already joined, we show the joined state inline.
+  useEffect(() => {
+    if (isCreator) {
+      router.replace(`/boards/${boardId}/creator-join`);
+    }
+  }, [isCreator, boardId, router]);
 
   const weekendFridays = useMemo(() => {
     if (!board) return [];
@@ -124,6 +131,8 @@ export default function ParticipantJoinPage() {
     <main className="min-h-screen pb-20">
       <div className="mx-auto max-w-md px-4 py-6 flex flex-col gap-3">
         <BoardHeader board={board} />
+
+        <ShareLinkCard boardId={board.boardId} joinToken={board.joinToken} />
 
         <Card>
           <CardHeader>

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { CalendarCheck, Users, Home, UserPlus, Share2 } from "lucide-react";
+import { CalendarCheck, Users, Share2 } from "lucide-react";
 
 export function ScreenNav({
   boardId,
@@ -16,11 +16,6 @@ export function ScreenNav({
   const boardBase = `/boards/${boardId}`;
 
   const creatorLinks = [
-    {
-      href: "/",
-      label: "Create",
-      icon: Home,
-    },
     {
       href: `${boardBase}/creator-join`,
       label: "Share",
@@ -41,8 +36,8 @@ export function ScreenNav({
   const participantLinks = [
     {
       href: `${boardBase}/participant-join`,
-      label: "Join",
-      icon: UserPlus,
+      label: "Share",
+      icon: Share2,
     },
     {
       href: `${boardBase}/my-availability`,
