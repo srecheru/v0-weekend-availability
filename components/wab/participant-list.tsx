@@ -6,9 +6,11 @@ import { Users } from "lucide-react";
 export function ParticipantList({
   participants,
   participantCap,
+  currentParticipantId,
 }: {
   participants: Participant[];
   participantCap: number;
+  currentParticipantId?: string;
 }) {
 
   if (participants.length === 0) {
@@ -20,7 +22,6 @@ export function ParticipantList({
     );
   }
 
-  const names = participants.map((p) => p.displayName);
   const pendingCount = participants.filter(
     (p) => p.state !== "ADDED_AVAILABILITY"
   ).length;
@@ -31,7 +32,17 @@ export function ParticipantList({
         <Users className="size-4" />
         {participants.length} / {participantCap} Participants
       </div>
-      <p className="text-sm text-muted-foreground">{names.join(", ")}</p>
+      <p className="text-sm text-muted-foreground">
+        {participants.map((p, i) => (
+          <span key={p.participantId}>
+            {i > 0 && ", "}
+            {p.displayName}
+            {p.participantId === currentParticipantId && (
+              <span className="text-xs text-foreground font-medium"> (You)</span>
+            )}
+          </span>
+        ))}
+      </p>
       {pendingCount > 0 && (
         <p className="text-xs text-muted-foreground">
           {pendingCount} participant{pendingCount !== 1 ? "s" : ""} pending availability

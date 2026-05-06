@@ -144,7 +144,7 @@ export default function ParticipantJoinPage() {
               hasAggregation={hasAggregation}
               pendingCount={pendingCount}
             />
-            <ParticipantList participants={participants ?? []} participantCap={board.participantCap} />
+            <ParticipantList participants={participants ?? []} participantCap={board.participantCap} currentParticipantId={currentParticipant?.participantId} />
           </CardContent>
         </Card>
 

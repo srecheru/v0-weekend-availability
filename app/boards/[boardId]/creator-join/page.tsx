@@ -112,6 +112,7 @@ export default function CreatorJoinPage() {
             <ParticipantList
               participants={participants ?? []}
               participantCap={board.participantCap}
+              currentParticipantId={currentParticipant?.participantId}
             />
           </CardContent>
         </Card>
